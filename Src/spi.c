@@ -144,13 +144,35 @@ void spi1_transmit(uint8_t *data,uint32_t size)
 	temp = SPI1->SR;
 }
 
-void spi1_transmit_opti(uint8_t *data,uint32_t size){
-	uint32_t i=0;
-	uint8_t temp;
-	while(i<size){
-		i++;
+void spi1_transmit_16(uint16_t *data,uint32_t size)
+	{
+		/*Set 16 bit data mode*/
+		SPI1->CR1 |=  (1U<<11);
+
+		uint32_t i=0;
+		uint16_t temp;
+
+		while(i<size)
+		{
+			/*Wait until TXE is set*/
+			while(!(SPI1->SR & (SR_TXE))){}
+
+			/*Write the data to the data register*/
+			SPI1->DR = data[i];
+			i++;
+		}
+		/*Wait until TXE is set*/
+		while(!(SPI1->SR & (SR_TXE))){}
+
+		/*Wait for BUSY flag to reset*/
+		while((SPI1->SR & (SR_BSY))){}
+
+		/*Clear OVR flag*/
+		temp = SPI1->DR;
+		temp = SPI1->SR;
+	/*Set 8 bit data mode*/
+	SPI1->CR1 &= ~(1U<<11);
 	}
-}
 
 
 void spi1_receive(uint8_t *data,uint32_t size)

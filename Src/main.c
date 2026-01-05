@@ -34,12 +34,10 @@ int main(void){
 	testScreen();
 	uint8_t n;
 	while(1){
-		 n++;
-		 n=n%3;
 		fullScreenColor(n);
-		systick_msec_delay(100);
-		//testScreen();
-		systick_msec_delay(100);
+		n++;
+		n=n%3;
+		systick_msec_delay(1000);
 
 	}
 

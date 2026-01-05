@@ -31,9 +31,15 @@
 #define ST7789_DISPOFF 0x28
 
 #define DISPLAY_PIXEL (240*320)
-#define BUFFER_PIXEL 0xFF
+#define BUFFER_PIXEL 240
 #define BUFFER_BYTES (BUFFER_PIXEL*2)
 #define DISPLAY_CHUNKS (DISPLAY_PIXEL /BUFFER_PIXEL)
+
+#define COLOR16_WHITE 0xFFFF
+#define COLOR16_BLACK 0x0000
+#define COLOR16_RED 0xF800
+#define COLOR16_BLUE 0x00FD
+
 
 /*from adafruit_ST7789.cpp*/
 static const uint8_t generic_st7789[] ={                // Init commands for 7789 screens

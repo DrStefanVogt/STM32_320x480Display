@@ -1,5 +1,5 @@
 ../Src/spi.c:11:6:spi_gpio_init	4	static
 ../Src/spi.c:77:6:spi1_config	4	static
 ../Src/spi.c:122:6:spi1_transmit	24	static
-../Src/spi.c:147:6:spi1_transmit_opti	24	static
-../Src/spi.c:156:6:spi1_receive	16	static
+../Src/spi.c:147:6:spi1_transmit_16	24	static
+../Src/spi.c:178:6:spi1_receive	16	static

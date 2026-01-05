@@ -12,7 +12,7 @@
 #include <math.h>
          //    10 ms delay
 
-static uint8_t buf[BUFFER_BYTES];
+static uint16_t buf[BUFFER_BYTES];
 
 Color16 white = {0xFF,0xFF};
 Color16 green = {0x00,0x1F};
@@ -108,29 +108,28 @@ void sbc_lcd01_init(){
 	}
 
 void fullScreenColor(uint8_t enumCol){
-	sendCommand(ST77XX_RAMWR, NULL, 0);
-
+			sendCommand(ST77XX_RAMWR, NULL, 0);
 			tft_dc_high();
-			for(uint32_t i=0;i<BUFFER_BYTES;i+=2) {
+			for(uint32_t i=0;i<BUFFER_PIXEL;i+=1) {
 			switch(enumCol){
 			case 0:
-				buf[i] =  white.low;
-				buf[i+1] =  white.hi;
+				buf[i] =  COLOR16_WHITE;
+				//buf[i+1] =  white.hi;
 				break;
 			case 1:
-				buf[i] =  red.low;
-				buf[i+1] =  red.hi;
+				buf[i] =  COLOR16_BLACK;
+				//buf[i+1] =  red.hi;
 				break;
 			case 2:
-				buf[i] =  blue.low;
-				buf[i+1] =  blue.hi;
+				buf[i] =  COLOR16_RED;
+				//buf[i+1] =  blue.hi;
 				break;
 			default:
 			//	uint8_t buf[2] =  {black.low,black.hi};
 			}}
-
 			for (uint32_t i=0; i<DISPLAY_CHUNKS; i++){
-					spi1_transmit(buf,BUFFER_BYTES);
+					//spi1_transmit(buf,BUFFER_BYTES);
+				spi1_transmit_16(buf,BUFFER_PIXEL);
 				}
 			tft_dc_low();
 }

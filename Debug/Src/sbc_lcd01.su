@@ -7,4 +7,4 @@
 ../Src/sbc_lcd01.c:91:6:tft_dc_high	4	static
 ../Src/sbc_lcd01.c:95:6:sbc_lcd01_init	8	static
 ../Src/sbc_lcd01.c:110:6:fullScreenColor	24	static
-../Src/sbc_lcd01.c:138:6:testScreen	32	static
+../Src/sbc_lcd01.c:137:6:testScreen	32	static
