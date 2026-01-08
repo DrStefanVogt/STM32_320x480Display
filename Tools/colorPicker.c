@@ -31,6 +31,7 @@ int main(void){
     color(colorInput,Split);
     printf("color input:\n r: %hhu, g: %hhu, b: %hhu\n",r,g,b);
     printf("color output:\n hi:%hhu\nlow:%hhu",Split[0],Split[1]);
+    printf("\n%u",3U);
     return 1;
 }
 

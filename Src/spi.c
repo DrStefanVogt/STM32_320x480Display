@@ -116,7 +116,6 @@ void spi1_config(void)
 	//SPI1->CR1 &=~ (1<<8);
 	/*Enable SPI module*/
 	SPI1->CR1 |= (1<<6);
-
 }
 
 void spi1_transmit(uint8_t *data,uint32_t size)
@@ -190,3 +189,9 @@ void spi1_receive(uint8_t *data,uint32_t size)
 		size--;
 	}
 }
+
+void spi1_DMA_enable(void){
+	SPI1->CR1 |= (1U << 6);
+	SPI1->CR2 |= (1U<<1);
+}
+

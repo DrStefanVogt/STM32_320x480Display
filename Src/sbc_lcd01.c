@@ -12,7 +12,7 @@
 #include <math.h>
          //    10 ms delay
 
-static uint16_t lineBuffer[BUFFER_BYTES];
+
 
 Color16 white = {0xFF,0xFF};
 Color16 green = {0x00,0x1F};
@@ -49,6 +49,22 @@ void sendCommand(uint8_t commandByte, const uint8_t *dataBytes,
 }
 
 /*from adafruit_ST77cc.cpp*/
+void sbc_lcd01_init(){
+		//reset pin aus und wieder an
+		A0_init();
+		A0_off();
+		systick_msec_delay(50); //50ms ist geraten, aber funktioniert
+		A0_on();
+
+		systick_msec_delay(5);
+		spi_gpio_init();
+		systick_msec_delay(5);
+		spi1_config();
+		systick_msec_delay(5);
+		spi_dma_init(lineBuffer);
+		systick_msec_delay(5);
+		displayInit(generic_st7789);
+	}
 void displayInit(const uint8_t *addr) {
 
   uint8_t numCommands, cmd, numArgs;
@@ -92,20 +108,7 @@ void tft_dc_high(void){
 	GPIOA->ODR |=(1U<<9);//???
 }
 
-void sbc_lcd01_init(){
-		//reset pin aus und wieder an
-		A0_init();
-		A0_off();
-		systick_msec_delay(50); //50ms ist geraten, aber funktioniert
-		A0_on();
 
-		systick_msec_delay(5);
-		spi_gpio_init();
-		systick_msec_delay(5);
-		spi1_config();
-		systick_msec_delay(5);
-		displayInit(generic_st7789);
-	}
 
 void fullScreenColor(uint8_t enumCol){
 			sendCommand(ST77XX_RAMWR, NULL, 0);
@@ -116,7 +119,7 @@ void fullScreenColor(uint8_t enumCol){
 				lineBuffer[i] =  COLOR16_WHITE;
 				break;
 			case 1:
-				lineBuffer[i] =  COLOR16_BLACK;
+				lineBuffer[i] =  COLOR16_GREEN;
 				break;
 			case 2:
 				lineBuffer[i] =  COLOR16_RED;
@@ -126,7 +129,8 @@ void fullScreenColor(uint8_t enumCol){
 			}}
 			for (uint32_t i=0; i<DISPLAY_CHUNKS; i++){
 					//spi1_transmit(buf,BUFFER_BYTES);
-				spi1_transmit_16(lineBuffer,BUFFER_PIXEL);
+				//spi1_transmit_16(lineBuffer,BUFFER_PIXEL);
+				spi1_transmit_DMA(BUFFER_PIXEL*2);
 				}
 			tft_dc_low();
 }

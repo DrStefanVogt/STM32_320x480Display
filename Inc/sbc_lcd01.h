@@ -5,15 +5,17 @@
  *      Author: stevo
  */
 #include "spi.h"
+#include "spi_dma.h"
 #include "gpio.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
+#include "systick.h"
 
 #ifndef SBC_LCD01_H_
 #define SBC_LCD01_H_
-#endif /* SBC_LCD01_H_ */
+
 
 /*from adafruit_ST7789.cpp*/
 #define ST77XX_SWRESET 0x01
@@ -42,6 +44,8 @@
 #define COLOR16_GREEN 0x1F00
 #define COLOR16_LIGHTBLUE 0xAAFF
 
+
+static uint16_t lineBuffer[BUFFER_BYTES];
 
 /*from adafruit_ST7789.cpp*/
 static const uint8_t generic_st7789[] ={                // Init commands for 7789 screens
@@ -89,3 +93,4 @@ void sbc_lcd01_init();
 void fullScreenColor(uint8_t enumCol);
 void testScreen(void);
 void testScreen_16(void);
+#endif /* SBC_LCD01_H_ */
