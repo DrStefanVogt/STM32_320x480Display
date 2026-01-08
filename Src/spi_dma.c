@@ -18,12 +18,12 @@
 #define DMA_CR_CHSEL3		(3U<<25)
 
 
-static uint16_t bufferNow[480];
+static uint16_t bufferNow[240];
 
-void spi_dma_init(const uint16_t *buffer){
-	for (uint16_t i=0;i<480;i++){
-		if(i<240)bufferNow[i] = buffer[i];
-		else bufferNow[i] =0xAAFF;
+void spi_dma_init(uint16_t *buffer){
+	for (uint16_t i=0;i<240;i++){
+		if(i<120)bufferNow[i] = 0xF800;// buffer[i];
+		else bufferNow[i] = buffer[i] ;
 	}
 	/*Enable clock access to DMA*/
 	RCC->AHB1ENR |=DMA2EN;
@@ -48,6 +48,8 @@ void spi_dma_init(const uint16_t *buffer){
 	/*Set PSIZE i.e Peripheral data size to half-word*/
 	DMA2_Stream3->CR |= (1U<<11);
 	DMA2_Stream3->CR &= ~(1U<<12);
+	/*PINCOS*/
+	//DMA2_Stream3->CR |= (1U << 15);
 
 	/*set Data transfer direction*/
 	DMA2_Stream3->CR |= DMA_CR_DIR1;
@@ -60,7 +62,8 @@ void spi_dma_init(const uint16_t *buffer){
 	/*Set periph address*/
 	DMA2_Stream3->PAR = (uint32_t)(&(SPI1->DR)); //what to set here?? SPI data register!
 	/*Set mem address*/
-	DMA2_Stream3->M0AR = (uint32_t)(bufferNow); //what to set here?? memory not changed
+	DMA2_Stream3->M0AR = (uint32_t)(buffer); //what to set here?? memory not changed
+
 
 	/*Set number of transfer*/
 	//DMA2_Stream3->NDTR = (uint16_t)BUFFER_BYTES;
@@ -93,6 +96,7 @@ void spi_dma_test(void){
 
 void spi1_transmit_DMA(uint32_t size)
 	{
+
 	 /* Disable stream */
 	    DMA2_Stream3->CR &= ~DMA_SCR_EN;
 	    while (DMA2_Stream3->CR & DMA_SCR_EN){};
@@ -106,7 +110,6 @@ void spi1_transmit_DMA(uint32_t size)
 	    /* Enable stream */
 	    DMA2_Stream3->CR |= DMA_SCR_EN;
 	    while(!(DMA2->LISR & (1U<<27))){}
-
 
 
 	}

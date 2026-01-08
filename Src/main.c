@@ -52,7 +52,7 @@ int main(void){
 		systick_msec_delay(100);
 		fullScreenColor(2);
 		systick_msec_delay(100);
-				fullScreenColor(1);
+				fullScreenColor(0);
 	}
 
 }

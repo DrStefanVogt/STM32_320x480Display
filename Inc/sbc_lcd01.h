@@ -32,10 +32,12 @@
 #define ST77XX_RAMWR 0x2C
 #define ST7789_DISPOFF 0x28
 
-#define DISPLAY_PIXEL (240*320)
-#define BUFFER_PIXEL 240 //for 16 bit color_transfer
-#define BUFFER_BYTES (BUFFER_PIXEL*2) //for 8 bit color transfer, should be removed evetually
-#define DISPLAY_CHUNKS (DISPLAY_PIXEL /BUFFER_PIXEL)
+
+#define DISPLAY_LINE_PIXEL 240 //for 16 bit color_transfer
+#define DISPLAY_LINE_NUMBER 241
+#define DISPLAY_PIXEL (DISPLAY_LINE_PIXEL * DISPLAY_LINE_NUMBER)
+#define BUFFER_BYTES (DISPLAY_LINE_PIXEL*2) //for 8 bit color transfer, should be removed evetually
+
 
 #define COLOR16_WHITE 0xFFFF
 #define COLOR16_BLACK 0x0000
@@ -44,8 +46,6 @@
 #define COLOR16_GREEN 0x1F00
 #define COLOR16_LIGHTBLUE 0xAAFF
 
-
-static uint16_t lineBuffer[BUFFER_BYTES];
 
 /*from adafruit_ST7789.cpp*/
 static const uint8_t generic_st7789[] ={                // Init commands for 7789 screens

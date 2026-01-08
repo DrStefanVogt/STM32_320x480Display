@@ -1,3 +1,3 @@
 ../Src/spi_dma.c:23:6:spi_dma_init	4
-../Src/spi_dma.c:87:6:spi_dma_test	1
-../Src/spi_dma.c:94:6:spi1_transmit_DMA	3
+../Src/spi_dma.c:90:6:spi_dma_test	1
+../Src/spi_dma.c:97:6:spi1_transmit_DMA	3

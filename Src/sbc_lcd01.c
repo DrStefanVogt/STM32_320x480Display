@@ -12,7 +12,7 @@
 #include <math.h>
          //    10 ms delay
 
-
+static uint16_t lineBuffer[DISPLAY_LINE_PIXEL];
 
 Color16 white = {0xFF,0xFF};
 Color16 green = {0x00,0x1F};
@@ -113,24 +113,26 @@ void tft_dc_high(void){
 void fullScreenColor(uint8_t enumCol){
 			sendCommand(ST77XX_RAMWR, NULL, 0);
 			tft_dc_high();
-			for(uint32_t i=0;i<BUFFER_PIXEL;i+=1) {
+			for(uint32_t pixel=0;pixel<DISPLAY_LINE_PIXEL;pixel+=1) {
+			//fill lineBuffer with color values
 			switch(enumCol){
 			case 0:
-				lineBuffer[i] =  COLOR16_WHITE;
+				lineBuffer[pixel] =  COLOR16_WHITE;
 				break;
 			case 1:
-				lineBuffer[i] =  COLOR16_GREEN;
+				lineBuffer[pixel] =  COLOR16_GREEN;
 				break;
 			case 2:
-				lineBuffer[i] =  COLOR16_RED;
+				lineBuffer[pixel] =  COLOR16_RED;
 				break;
 			default:
 				break;
 			}}
-			for (uint32_t i=0; i<DISPLAY_CHUNKS; i++){
+			for (uint32_t line=0; line<DISPLAY_LINE_NUMBER; line++){
+				//ask DMA to transmit the lineBuffer
 					//spi1_transmit(buf,BUFFER_BYTES);
-				//spi1_transmit_16(lineBuffer,BUFFER_PIXEL);
-				spi1_transmit_DMA(BUFFER_PIXEL*2);
+				//spi1_transmit_16(lineBuffer,DISPLAY_LINE_PIXEL);
+				spi1_transmit_DMA(DISPLAY_LINE_PIXEL);
 				}
 			tft_dc_low();
 }
@@ -187,9 +189,9 @@ void testScreen_16(void){
 
 			tft_dc_high();
 
-			for	(uint16_t j=0;j < DISPLAY_CHUNKS;j++){
+			for	(uint16_t j=0;j < DISPLAY_LINE_NUMBER;j++){
 				uint8_t line= floor(j/40);
-				for (uint32_t i=0; i<BUFFER_PIXEL; i++){
+				for (uint32_t i=0; i<DISPLAY_LINE_PIXEL; i++){
 					switch(line){
 					case 0:
 						lineBuffer[i] = COLOR16_WHITE;
@@ -211,7 +213,7 @@ void testScreen_16(void){
 						break;
 				}
 			}
-				spi1_transmit_16(lineBuffer,BUFFER_PIXEL);
+				spi1_transmit_16(lineBuffer,DISPLAY_LINE_PIXEL);
 			}
 			tft_dc_low();
 }

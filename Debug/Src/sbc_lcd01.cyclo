@@ -7,5 +7,5 @@
 ../Src/sbc_lcd01.c:104:6:tft_dc_low	1
 ../Src/sbc_lcd01.c:107:6:tft_dc_high	1
 ../Src/sbc_lcd01.c:113:6:fullScreenColor	7
-../Src/sbc_lcd01.c:138:6:testScreen	8
-../Src/sbc_lcd01.c:181:6:testScreen_16	9
+../Src/sbc_lcd01.c:140:6:testScreen	8
+../Src/sbc_lcd01.c:183:6:testScreen_16	9

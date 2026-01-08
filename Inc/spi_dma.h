@@ -13,6 +13,6 @@
 
 #define NUM_OF_CHANNELS		1
 
-void spi_dma_init(const uint16_t *buffer);
+void spi_dma_init(uint16_t *buffer);
 void spi1_transmit_DMA(uint32_t size);
 #endif /* SPI_DMA_H_ */

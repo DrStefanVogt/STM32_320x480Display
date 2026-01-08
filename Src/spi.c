@@ -170,7 +170,7 @@ void spi1_transmit_16(uint16_t *data,uint32_t size)
 		temp = SPI1->DR;
 		temp = SPI1->SR;
 	/*Set 8 bit data mode*/
-	SPI1->CR1 &= ~(1U<<11);
+	//SPI1->CR1 &= ~(1U<<11);
 	}
 
 
