@@ -8,3 +8,5 @@ Offene Fragen:
 - vielleicht 2D Array für bessere Lesbarkeit? 
 Offene Aufgaben:
 - Kreis, Letter, Pixel, offenes Rechteck, movement? (spannend, aber nicht soo notwendig)
+
+15012026 Guter Fortschritt mit Buchstaben und Wörtern. Jetzt gibt es einen IDE fehler den ich nicht finde. Problem ließe sich in git lösen indem ich auf den vorherigen commit gehe und dann mit cherry-pick(?) nur die files committe die ich auch ändern wollte. Der fehler scheint irgendwie ins projekt gekommen zu sein und nicht im code zu liegen...keine Ahnung wie ich habe nichts im projekt geändert. Neustarts habe ich auch probiert
