@@ -13,6 +13,12 @@ uint16_t localBuffer[64];
 const uint8_t MAXWORDLENGTH = 25;
 
 typedef struct {
+	bool doubleSized;
+	uint16_t color;
+	uint16_t bgColor;
+} textOptions;
+
+typedef struct {
 	uint32_t rows[2];
 } Glyph;
 
@@ -55,13 +61,21 @@ static const Glyph font[] = {
 		['9'] = { .rows ={0x30306C7C, 0x3C0C7C70} },
 };
 
-void rectangle( uint16_t line, uint16_t row, uint16_t width, uint16_t height, uint16_t color){
-	initAdressWindow(line, row, width, height);
+static textOptions TEXT_OPT ={1,COLOR16_BLACK,COLOR16_WHITE};
+
+void textInit(bool doubleSize, uint16_t color, uint16_t backgroundColor){
+	TEXT_OPT.doubleSized = doubleSize;
+	TEXT_OPT.color = color;
+	TEXT_OPT.bgColor = backgroundColor;
+}
+
+
+void rectangle( uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t color){
 	uint16_t pixelNo = width*height;
 	for (uint16_t i=0; i < pixelNo ;i++){
 		windowBuffer[i]=color;
 	}
-	fillRectangle(localBuffer,pixelNo); //Das ist total inkonsequent, weil hier der windowBuffer aus der sbc_lcd01 direkt benutzt wird - aber effizent ist es
+	fillRectangle(windowBuffer,x,y,width,height); //Das ist etwas inkonsequent, weil hier der windowBuffer aus der sbc_lcd01 direkt benutzt wird - aber effizent ist es
 
 
 }
@@ -76,14 +90,26 @@ void writeLetter(char letter, uint16_t x, uint16_t y,uint16_t color,uint16_t bac
     	if(!(g->rows[1]>>i & 0x00000001)) localBuffer[i]=background;
     	if(!(g->rows[0]>>i & 0x00000001)) localBuffer[32+i]=background;
     }
-	//fillRectangle(localBuffer,64);
-	initAdressWindow(x, y, letterHeight*2, letterWidth*2);
-    fillSquare_scaleup(localBuffer,8,2);
+	if (TEXT_OPT.doubleSized) fillSquare_scaleup(localBuffer,x,y,letterHeight);
+	else fillRectangle(localBuffer,x,y,8,8);
 }
 
-void writeWord(const char *word, uint16_t x, uint16_t y,uint16_t color,uint16_t background){
+void writeWord(const char *word, uint16_t x, uint16_t y,uint16_t color){
+		uint8_t spacing = 15;
+		int16_t cursor = -spacing;
 		for(uint8_t i=0 ; word[i] !='\0'; i++){
-			writeLetter((char)word[i],x-(i*15),y,color,background);
+			switch(word[i-1]){
+			case('I'):
+				cursor += (spacing-8);
+				break;
+			case('L'):
+					cursor += (spacing-2);
+					break;
+			default:
+			cursor += spacing;
+			}
+			writeLetter((char)word[i],x-cursor,y,color,TEXT_OPT.bgColor);
+
 			if (i==MAXWORDLENGTH) break;
 		}
 }

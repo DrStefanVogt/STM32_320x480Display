@@ -34,11 +34,10 @@
 #define ST7789_DISPOFF 0x28
 
 
-#define DISPLAY_LINE_PIXEL 240 //for 16 bit color_transfer
-#define DISPLAY_LINE_NUMBER 241
-#define DISPLAY_PIXEL (DISPLAY_LINE_PIXEL * DISPLAY_LINE_NUMBER)
-#define BUFFER_BYTES (DISPLAY_LINE_PIXEL*2) //for 8 bit color transfer, should be removed evetually
-#define MAX_WINDOW_PIXEL (DISPLAY_LINE_PIXEL*16)
+#define DISPLAY_X_MAX 240 //for 16 bit color_transfer
+#define DISPLAY_Y_MAX 241
+#define DISPLAY_PIXEL (DISPLAY_X_MAX * DISPLAY_Y_MAX)
+#define MAX_WINDOW_PIXEL (DISPLAY_X_MAX*16)
 
 #define COLOR16_WHITE 0xFFFF
 #define COLOR16_BLACK 0x0000
@@ -47,7 +46,8 @@
 #define COLOR16_GREEN 0x1F00
 #define COLOR16_LIGHTBLUE 0xAAFF
 
-static volatile uint16_t windowBuffer[MAX_WINDOW_PIXEL]; // define windowBuffer for
+static volatile uint16_t windowBuffer[DISPLAY_X_MAX<<1]; // define windowBuffer for
+static uint16_t lineBuffer[DISPLAY_X_MAX];
 
 /*from adafruit_ST7789.cpp*/
 static const uint8_t generic_st7789[] ={                // Init commands for 7789 screens
@@ -90,5 +90,6 @@ void sendCommand(uint8_t commandByte, const uint8_t *dataBytes,
 void sbc_lcd01_init();
 void fullScreenColor(uint16_t color);
 void testScreen_16(void);
-void fillSquare_scaleup(uint16_t *buffer, uint16_t size, uint8_t scale);
+void fillRectangle(uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uint8_t b);
+void fillSquare_scaleup(uint16_t *buffer, uint16_t x, uint16_t y, uint16_t a);
 #endif /* SBC_LCD01_H_ */

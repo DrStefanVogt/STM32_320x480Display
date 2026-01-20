@@ -17,11 +17,18 @@ int main(void){
 	systick_msec_delay(500);
 	fullScreenColor(COLOR16_WHITE);
 	static const char oneWord[]="HALLO JESSICA";
-	static const char secondWord[] = "GLUECKWUNSCH";
+	static const char secondWord[] = "ALLES GUTE";
+	//rectangle(100,10,10,10,COLOR16_RED);
+	uint8_t pos=0;
+	textInit(1,COLOR16_WHITE,COLOR16_WHITE);
+	writeWord(secondWord,220,120,COLOR16_BLUE);
+	systick_msec_sleep(150);
+	rectangle(0,30,240,10,COLOR16_RED);
 	while(1){
-		writeWord(oneWord,220,160,COLOR16_RED,COLOR16_WHITE);
-		writeWord(secondWord,220,120,COLOR16_BLACK,COLOR16_WHITE);
-		systick_msec_sleep(50);
+		textInit(1,COLOR16_WHITE,COLOR16_BLACK);
+		writeWord(oneWord,pos,160,COLOR16_GREEN);
+		systick_msec_sleep(5);
+		pos =(pos+1)%240;
 
 	}
 

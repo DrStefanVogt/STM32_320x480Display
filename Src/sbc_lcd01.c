@@ -13,7 +13,7 @@
 #include <math.h>
          //    10 ms delay
 
-static uint16_t lineBuffer[DISPLAY_LINE_PIXEL];
+
 
 
 
@@ -90,33 +90,43 @@ void displayInit(const uint8_t *addr) {
 }
 
 void fullScreenColor(uint16_t color){
-			initAdressWindow(0,0,DISPLAY_LINE_PIXEL,DISPLAY_LINE_NUMBER);
+			initAdressWindow(0,0,DISPLAY_X_MAX,DISPLAY_Y_MAX);
 			sendCommand16((uint16_t)ST77XX_RAMWR, NULL, 0);
 			tft_dc_high();
-			for(uint32_t pixel=0;pixel<DISPLAY_LINE_PIXEL;pixel+=1) {
+			for(uint32_t pixel=0;pixel<DISPLAY_X_MAX;pixel+=1) {
 			//fill windowBuffer with color values
 			windowBuffer[pixel] =  color;
 			}
-			for (uint32_t line=0; line<DISPLAY_LINE_NUMBER; line++){
-				spi1_transmit_DMA(DISPLAY_LINE_PIXEL);
+			for (uint32_t line=0; line<DISPLAY_Y_MAX; line++){
+				spi1_transmit_DMA(DISPLAY_X_MAX);
 				}
 			tft_dc_low();
 }
 
-void fillRectangle(uint16_t *buffer, uint16_t size){
+void fillRectangle(uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uint8_t b){
+	//crop logic
+	if(x<0) x=0;
+	if(y<0) y=0;
+
+	//calculate total size to transmit
+	uint16_t size = a*b;
+	initAdressWindow(x, y, a, b);
+
+	//fill windowBuffer
 	for (uint16_t i=0; i < size ;i++){
 		windowBuffer[i]=buffer[i];
 	}
+	//sending Data via DMA
 	sendCommand16((uint16_t)ST77XX_RAMWR, NULL, 0);
 			tft_dc_high();
 			spi1_transmit_DMA(size);
 			tft_dc_low();
 }
 
-void fillSquare_scaleup(uint16_t *buffer, uint16_t a, uint8_t scale){
+void fillSquare_scaleup(uint16_t *buffer, uint16_t x, uint16_t y, uint16_t a){
 	uint16_t size = a*a;
-	scale = 2; //this method does not work for scale !=2 ...
-	uint8_t k;
+	const uint8_t scale = 2;
+	uint16_t k=0;
 	for (uint16_t i=0; i < size;i++){
 			windowBuffer[scale*i+k]=buffer[i];
 			windowBuffer[scale*i+k+1]=buffer[i];
@@ -124,11 +134,7 @@ void fillSquare_scaleup(uint16_t *buffer, uint16_t a, uint8_t scale){
 			windowBuffer[scale*i+k+scale*a+1]=buffer[i];
 			if (i!=0 && i%a==0) k+=scale *a;
 			}
-
-	sendCommand16((uint16_t)ST77XX_RAMWR, NULL, 0);
-			tft_dc_high();
-			spi1_transmit_DMA(size*scale*scale);
-			tft_dc_low();
+	fillRectangle(windowBuffer, x, y, 2*a,2*a);
 }
 
 void initAdressWindow(uint16_t x, uint16_t y, uint16_t width, uint16_t height){
@@ -138,7 +144,6 @@ void initAdressWindow(uint16_t x, uint16_t y, uint16_t width, uint16_t height){
 	sendCommand((uint8_t)ST77XX_CASET,caset_data, 4);
 	sendCommand((uint8_t)ST77XX_RASET, raset_data, 4);
 	sendCommand((uint8_t)ST77XX_RAMWR, NULL, 0);
-
 }
 
 void testScreen_16(void){
@@ -147,9 +152,9 @@ void testScreen_16(void){
 
 			tft_dc_high();
 
-			for	(uint16_t j=0;j < DISPLAY_LINE_NUMBER;j++){
+			for	(uint16_t j=0;j < DISPLAY_Y_MAX;j++){
 				uint8_t line= floor(j/40);
-				for (uint32_t i=0; i<DISPLAY_LINE_PIXEL; i++){
+				for (uint32_t i=0; i<DISPLAY_X_MAX; i++){
 					switch(line){
 					case 0:
 						lineBuffer[i] = COLOR16_WHITE;
@@ -171,7 +176,7 @@ void testScreen_16(void){
 						break;
 				}
 			}
-				spi1_transmit16(lineBuffer,DISPLAY_LINE_PIXEL);
+				spi1_transmit16(lineBuffer,DISPLAY_X_MAX);
 			}
 			tft_dc_low();
 }
