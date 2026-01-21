@@ -16,19 +16,22 @@ int main(void){
 	testScreen_16();
 	systick_msec_delay(500);
 	fullScreenColor(COLOR16_WHITE);
-	static const char oneWord[]="HALLO JESSICA";
+	static const char oneWord[]="HALLO JESSICA ";
 	static const char secondWord[] = "ALLES GUTE";
 	//rectangle(100,10,10,10,COLOR16_RED);
-	uint8_t pos=0;
+	int16_t pos=260;
 	textInit(1,COLOR16_WHITE,COLOR16_WHITE);
 	writeWord(secondWord,220,120,COLOR16_BLUE);
 	systick_msec_sleep(150);
 	rectangle(0,30,240,10,COLOR16_RED);
+	textInit(1,COLOR16_WHITE,COLOR16_BLACK);
+	rectangle(0,157,240,21,COLOR16_BLACK);
+	rectangle(201,220,56,50,COLOR16_GREEN);
 	while(1){
-		textInit(1,COLOR16_WHITE,COLOR16_BLACK);
 		writeWord(oneWord,pos,160,COLOR16_GREEN);
 		systick_msec_sleep(5);
-		pos =(pos+1)%240;
+		rectangle(pos,pos,56,50,COLOR16_GREEN);
+		pos =(pos+1)%450;
 	}
 
 }

@@ -78,8 +78,8 @@ void spi_dma_init(uint16_t *buffer){
 
 void spi1_transmit_DMA(uint32_t size)
 	{
-
-	 /* Disable stream */
+		if(size==0) return;
+		/* Disable stream */
 	    DMA2_Stream3->CR &= ~DMA_SCR_EN;
 	    while (DMA2_Stream3->CR & DMA_SCR_EN){};
 	    /* Clear all relevant flags */

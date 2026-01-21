@@ -105,17 +105,42 @@ void fullScreenColor(uint16_t color){
 void fillRectangle(uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uint8_t b){
 	setSingleColorBuffer(0);
 	//crop logic
-//	if(x<0) x=0;
-//	if(y<0) y=0;
+	int8_t cropOffset= 0;
+	//check for completely out of bounds
+	if((x+a<0) || (x >= DISPLAY_X_MAX ))return;
+	if((y+b<0) || (y >= DISPLAY_Y_MAX ))return;
+
+	//check for partially out of bounds
+
+	if(x<0){
+		a=a+x;
+		x=0;
+		cropOffset=x;
+	}
+
+	if((x+a)>DISPLAY_X_MAX){
+		cropOffset=x+a-DISPLAY_X_MAX;
+		a=DISPLAY_X_MAX - x;
+	}
 
 	//calculate total size to transmit
 	uint16_t size = a*b;
 	initAdressWindow(x, y, a, b);
 
 	//fill windowBuffer
+	if(cropOffset==0){
+		//no cropping just write the buffer
 	for (uint16_t i=0; i < size ;i++){
-		windowBuffer[i]=buffer[i];
-	}
+			windowBuffer[i]=buffer[i];
+		}}
+	else {
+		uint16_t k = 0;
+		for (uint16_t i=0; i < size ;i++){
+			windowBuffer[i]=buffer[k];
+			k++;
+			if(k%a==0) k+=cropOffset;
+		}
+		}
 	//sending Data via DMA
 	sendCommand16((uint16_t)ST77XX_RAMWR, NULL, 0);
 			tft_dc_high();
@@ -157,9 +182,24 @@ void fillSquare_scaleup(uint16_t *buffer, uint16_t x, uint16_t y, uint16_t a){
 }
 
 void initAdressWindow(uint16_t x, uint16_t y, uint16_t width, uint16_t height){
+	//define maximums for x,y
+	uint16_t xmax = x+width-1;
+	uint16_t ymax = y+height-1;
 
-	uint8_t caset_data[4] =  {0 ,x,0,x+width-1};
-	uint8_t raset_data[4] =  {0 ,y,0,y+height-1};
+	//split into MSB/LSB
+	uint8_t x_lo =(uint8_t) x&0xFF;
+	uint8_t x_hi =(uint8_t) x>>8;
+	uint8_t xmax_lo = (uint8_t)(xmax & 0xFF);
+	uint8_t xmax_hi = (uint8_t)(xmax >> 8);
+
+	uint8_t y_lo =(uint8_t) y&0xFF;
+	uint8_t y_hi =(uint8_t) y>>8;
+	uint8_t ymax_lo = (uint8_t)(ymax & 0xFF);
+	uint8_t ymax_hi = (uint8_t)(ymax >> 8);
+
+	//prepare and set caset/raset for display
+	uint8_t caset_data[4] =  {x_hi ,x_lo,xmax_hi,xmax_lo};
+	uint8_t raset_data[4] =  {y_hi ,y_lo,ymax_hi,ymax_lo};
 	sendCommand((uint8_t)ST77XX_CASET,caset_data, 4);
 	sendCommand((uint8_t)ST77XX_RASET, raset_data, 4);
 	sendCommand((uint8_t)ST77XX_RAMWR, NULL, 0);

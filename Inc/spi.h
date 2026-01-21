@@ -25,5 +25,6 @@ void spi1_transmit16(uint16_t *data,uint32_t size);
 void spi1_receive(uint8_t *data,uint32_t size);
 void cs_enable(void);
 void cs_disable(void);
-
+void spi1_set8(void);
+void spi1_set16(void);
 #endif /* SPI_H_ */

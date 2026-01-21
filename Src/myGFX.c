@@ -75,10 +75,9 @@ void rectangle( uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_
 	/*for (uint16_t i=0; i < pixelNo ;i++){*/
 		localBuffer[0]=color;
 	//}
-	fillRectangle_oneColor(localBuffer,x,y,width,height); //Das ist etwas inkonsequent, weil hier der windowBuffer aus der sbc_lcd01 direkt benutzt wird - aber effizent ist es
-
-
+	fillRectangle_oneColor(localBuffer,x,y,width,height);
 }
+
 void writeLetter(char letter, uint16_t x, uint16_t y,uint16_t color,uint16_t background){
 	const Glyph *g = &font[(uint8_t)letter];
 	uint8_t letterHeight = 8;
@@ -91,7 +90,7 @@ void writeLetter(char letter, uint16_t x, uint16_t y,uint16_t color,uint16_t bac
     	if(!(g->rows[0]>>i & 0x00000001)) localBuffer[32+i]=background;
     }
 	if (TEXT_OPT.doubleSized) fillSquare_scaleup(localBuffer,x,y,letterHeight);
-	else fillRectangle(localBuffer,x,y,8,8);
+	else fillRectangle(localBuffer,x,y,letterHeight,letterWidth);
 }
 
 void writeWord(const char *word, uint16_t x, uint16_t y,uint16_t color){
