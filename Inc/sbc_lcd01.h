@@ -46,9 +46,9 @@
 #define COLOR16_GREEN 0x1F00
 #define COLOR16_LIGHTBLUE 0xAAFF
 
-static volatile uint16_t windowBuffer[DISPLAY_X_MAX<<1]; // define windowBuffer for
+static volatile uint16_t windowBuffer[DISPLAY_X_MAX*4]; // define windowBuffer for
 static uint16_t lineBuffer[DISPLAY_X_MAX];
-static bool singleColorBuffer;
+static bool singleColorStatus;
 
 /*from adafruit_ST7789.cpp*/
 static const uint8_t generic_st7789[] ={                // Init commands for 7789 screens
@@ -92,7 +92,7 @@ void sbc_lcd01_init();
 void fullScreenColor(uint16_t color);
 void testScreen_16(void);
 void fillRectangle(uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uint8_t b);
-void fillSquare_scaleup(uint16_t *buffer, uint16_t x, uint16_t y, uint16_t a);
+void fillSquare_scaleup(uint16_t (*buffer)[8], uint16_t x, uint16_t y, uint16_t a);
 void fillRectangle_oneColor(uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uint8_t b);
-void setSingleColorBuffer(bool singleColor);
+void setsingleColorStatus(bool singleColor);
 #endif /* SBC_LCD01_H_ */

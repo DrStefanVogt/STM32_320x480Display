@@ -8,7 +8,9 @@
 #include "myGFX.h"
 #include "sbc_lcd01.h"
 
-uint16_t localBuffer[64];
+uint16_t localBuffer[8][8];
+uint16_t singleColor = 0xFFFFF;
+uint16_t* singleBuffer = &singleColor;
 
 const uint8_t MAXWORDLENGTH = 25;
 
@@ -59,6 +61,7 @@ static const Glyph font[] = {
 		['7'] = { .rows ={0x7C7C0C30, 0x30303030} },
 		['8'] = { .rows ={0x30306C7C, 0x306C7C30} },
 		['9'] = { .rows ={0x30306C7C, 0x3C0C7C70} },
+		['!'] = { .rows ={0x60606060, 0x60006060} },
 };
 
 static textOptions TEXT_OPT ={1,COLOR16_BLACK,COLOR16_WHITE};
@@ -71,23 +74,35 @@ void textInit(bool doubleSize, uint16_t color, uint16_t backgroundColor){
 
 
 void rectangle( uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t color){
-	uint16_t pixelNo = width*height;
-	/*for (uint16_t i=0; i < pixelNo ;i++){*/
-		localBuffer[0]=color;
-	//}
-	fillRectangle_oneColor(localBuffer,x,y,width,height);
+	*singleBuffer=color;
+	fillRectangle_oneColor(singleBuffer,x,y,width,height);
+}
+
+void rectangle_empty(uint16_t x, uint16_t y, uint16_t width, uint16_t height,uint8_t thickness, uint16_t color){
+	*singleBuffer=color;
+	uint8_t pixelNo[2]={width*thickness,height*thickness};
+	fillRectangle_oneColor(singleBuffer,x,y,width,thickness);
+	fillRectangle_oneColor(singleBuffer,x,y+height,width+thickness,thickness);
+	fillRectangle_oneColor(singleBuffer,x,y,thickness,width);
+	fillRectangle_oneColor(singleBuffer,x+width,y,thickness, width);
+
+
 }
 
 void writeLetter(char letter, uint16_t x, uint16_t y,uint16_t color,uint16_t background){
 	const Glyph *g = &font[(uint8_t)letter];
 	uint8_t letterHeight = 8;
 	uint8_t letterWidth = 8;
-	initAdressWindow(x, y, letterHeight, letterWidth);
-    for (int8_t i = 31 ;i>=0;i--){
-    	localBuffer[i] = (uint16_t)(g->rows[1]>>i & 0x00000001) *color;
-    	localBuffer[32+i] = (uint16_t)(g->rows[0]>>i & 0x00000001) *color;
-    	if(!(g->rows[1]>>i & 0x00000001)) localBuffer[i]=background;
-    	if(!(g->rows[0]>>i & 0x00000001)) localBuffer[32+i]=background;
+	initAdressWindow(x, y, letterWidth, letterHeight);
+    for (uint8_t i = 0 ;i<4;i++){
+    	for(uint8_t j=0; j<8;j++){
+    			//fist half of letter
+    			localBuffer[i][j] = (uint16_t)((g->rows[1]>>(i*8+j)) & 0x00000001) *color;
+    			localBuffer[4+i][j] = (uint16_t)((g->rows[0]>>(i*8+j)) & 0x00000001) *color;
+    			if(!((g->rows[0]>>(i*8+j)) & 0x00000001)) localBuffer[4+i][j]=background;
+    			if(!((g->rows[1]>>(i*8+j)) & 0x00000001)) localBuffer[i][j]=background;
+
+    	}
     }
 	if (TEXT_OPT.doubleSized) fillSquare_scaleup(localBuffer,x,y,letterHeight);
 	else fillRectangle(localBuffer,x,y,letterHeight,letterWidth);

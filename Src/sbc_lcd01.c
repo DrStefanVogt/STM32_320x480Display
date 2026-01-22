@@ -90,7 +90,7 @@ void displayInit(const uint8_t *addr) {
 }
 
 void fullScreenColor(uint16_t color){
-	setSingleColorBuffer(1);
+	setSingleColorStatus(1);
 			initAdressWindow(0,0,DISPLAY_X_MAX,DISPLAY_Y_MAX);
 			sendCommand16((uint16_t)ST77XX_RAMWR, NULL, 0);
 			tft_dc_high();
@@ -103,7 +103,10 @@ void fullScreenColor(uint16_t color){
 }
 
 void fillRectangle(uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uint8_t b){
-	setSingleColorBuffer(0);
+	//fills a rectangular screen area with the contents of *buffer
+
+	setSingleColorStatus(0); //using buffer increment
+
 	//crop logic
 	int8_t cropOffset= 0;
 	//check for completely out of bounds
@@ -113,9 +116,9 @@ void fillRectangle(uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uint8_t b){
 	//check for partially out of bounds
 
 	if(x<0){
+		cropOffset=x;
 		a=a+x;
 		x=0;
-		cropOffset=x;
 	}
 
 	if((x+a)>DISPLAY_X_MAX){
@@ -134,12 +137,7 @@ void fillRectangle(uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uint8_t b){
 			windowBuffer[i]=buffer[i];
 		}}
 	else {
-		uint16_t k = 0;
-		for (uint16_t i=0; i < size ;i++){
-			windowBuffer[i]=buffer[k];
-			k++;
-			if(k%a==0) k+=cropOffset;
-		}
+		return; //not handled porperly at the moment
 		}
 	//sending Data via DMA
 	sendCommand16((uint16_t)ST77XX_RAMWR, NULL, 0);
@@ -149,7 +147,15 @@ void fillRectangle(uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uint8_t b){
 }
 
 void fillRectangle_oneColor(uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uint8_t b){
-	setSingleColorBuffer(1);
+	//fills a rectangular area of the screen with just one color defined by buffer[0]
+	//this way there is no need for the MPU to fill the whole buffer with a*b times the same element
+
+	setSingleColorStatus(1); //switch of DMA increment of buffer
+
+	//check for completely out of bounds
+	if((x+a<0) || (x >= DISPLAY_X_MAX ))return;
+	if((y+b<0) || (y >= DISPLAY_Y_MAX ))return;
+
 	//calculate total size to transmit
 	uint16_t size = a*b;
 	initAdressWindow(x, y, a, b);
@@ -163,37 +169,39 @@ void fillRectangle_oneColor(uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uin
 			tft_dc_high();
 			spi1_transmit_DMA(size);
 			tft_dc_low();
-	//spi_dma_init(windowBuffer);
 }
 
-void fillSquare_scaleup(uint16_t *buffer, uint16_t x, uint16_t y, uint16_t a){
-	setSingleColorBuffer(0);
-	uint16_t size = a*a;
+void fillSquare_scaleup(uint16_t (*buffer)[8], uint16_t x, uint16_t y, uint16_t a){
+	//fill a square of size 2a x 2a with the contents of *buffer,
+	// use each pixel in buffer to fill 4 pixel in windowBuffer
+	setSingleColorStatus(0); //single color mode =off
 	const uint8_t scale = 2;
-	uint16_t k=0;
-	for (uint16_t i=0; i < size;i++){
-			windowBuffer[scale*i+k]=buffer[i];
-			windowBuffer[scale*i+k+1]=buffer[i];
-			windowBuffer[scale*i+k+scale*a]=buffer[i];
-			windowBuffer[scale*i+k+scale*a+1]=buffer[i];
-			if (i!=0 && i%a==0) k+=scale *a;
+	uint16_t size = a*a;
+	for (uint8_t i=0; i < a;i++){
+		for(uint8_t j=0;j<a;j++){
+				uint16_t dst = i*2*2*a + j*2;
+				windowBuffer[dst]=buffer[i][j];
+				windowBuffer[dst + 1]=buffer[i][j];
+				windowBuffer[dst + 2 *a]=buffer[i][j];
+				windowBuffer[dst + 2*a +1 ]=buffer[i][j];
 			}
+	}
 	fillRectangle(windowBuffer, x, y, 2*a,2*a);
 }
 
 void initAdressWindow(uint16_t x, uint16_t y, uint16_t width, uint16_t height){
 	//define maximums for x,y
-	uint16_t xmax = x+width-1;
-	uint16_t ymax = y+height-1;
+	uint16_t xmax = x + width - 1;
+	uint16_t ymax = y + height - 1;
 
 	//split into MSB/LSB
-	uint8_t x_lo =(uint8_t) x&0xFF;
-	uint8_t x_hi =(uint8_t) x>>8;
+	uint8_t x_lo =(uint8_t)(x & 0xFF);
+	uint8_t x_hi =(uint8_t) (x >> 8);
 	uint8_t xmax_lo = (uint8_t)(xmax & 0xFF);
 	uint8_t xmax_hi = (uint8_t)(xmax >> 8);
 
-	uint8_t y_lo =(uint8_t) y&0xFF;
-	uint8_t y_hi =(uint8_t) y>>8;
+	uint8_t y_lo =(uint8_t) (y & 0xFF);
+	uint8_t y_hi =(uint8_t) (y >> 8);
 	uint8_t ymax_lo = (uint8_t)(ymax & 0xFF);
 	uint8_t ymax_hi = (uint8_t)(ymax >> 8);
 
@@ -264,15 +272,15 @@ void tft_dc_high(void){
 	GPIOA->ODR |=(1U<<9);
 }
 
-void setSingleColorBuffer(bool singleColor){
-	if(singleColor == singleColorBuffer){
+void setSingleColorStatus(bool singleColor){
+	if(singleColor == singleColorStatus){
 		//do nothing if already in right state
 		return;
 	}
 	else{
 		//set DMA mode
-		spi_dma_setSingleColorBuffer(singleColor);
+		spi_dma_setSingleColorStatus(singleColor);
 		//update buffer
-		singleColorBuffer =singleColor;
+		singleColorStatus = singleColor;
 	}
 }

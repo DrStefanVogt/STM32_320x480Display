@@ -97,7 +97,7 @@ void spi1_transmit_DMA(uint32_t size)
 	    }
 	}
 
-void spi_dma_setSingleColorBuffer(bool on){
+void spi_dma_setSingleColorStatus(bool on){
 	 /* Disable stream */
 	DMA2_Stream3->CR &= ~DMA_SCR_EN;
 	while (DMA2_Stream3->CR & DMA_SCR_EN){};

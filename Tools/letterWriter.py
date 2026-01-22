@@ -5,7 +5,7 @@ import string
 BMP_DIR = "bmps"
 TXT_FILE = "arrays_and_hex.txt"
 SIZE = (8, 8)
-LETTERS = list(string.ascii_uppercase) + list(string.digits)
+LETTERS = ["!"]
 
 os.makedirs(BMP_DIR, exist_ok=True)
 

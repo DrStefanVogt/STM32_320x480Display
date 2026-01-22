@@ -1,3 +1,3 @@
 ../Src/spi_dma.c:22:6:spi_dma_init	16	static
 ../Src/spi_dma.c:79:6:spi1_transmit_DMA	16	static,ignoring_inline_asm
-../Src/spi_dma.c:100:6:spi_dma_setSingleColorBuffer	16	static
+../Src/spi_dma.c:100:6:spi_dma_setSingleColorStatus	16	static
