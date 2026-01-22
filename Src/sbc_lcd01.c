@@ -137,7 +137,7 @@ void fillRectangle(uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uint8_t b){
 			windowBuffer[i]=buffer[i];
 		}}
 	else {
-		return; //not handled porperly at the moment
+		return; //not handled properly at the moment
 		}
 	//sending Data via DMA
 	sendCommand16((uint16_t)ST77XX_RAMWR, NULL, 0);

@@ -17,7 +17,7 @@ int main(void){
 	systick_msec_delay(500);
 	fullScreenColor(COLOR16_WHITE);
 	static const char oneWord[]="HALLO JESSICA ";
-	static const char secondWord[] = "  ALLES GUTE!";
+	static const char secondWord[] = " LIEBE GRuSSE!";
 	//rectangle(100,10,10,10,COLOR16_RED);
 	int16_t pos=0;
 	textInit(1,COLOR16_WHITE,COLOR16_WHITE);

@@ -62,6 +62,7 @@ static const Glyph font[] = {
 		['8'] = { .rows ={0x30306C7C, 0x306C7C30} },
 		['9'] = { .rows ={0x30306C7C, 0x3C0C7C70} },
 		['!'] = { .rows ={0x60606060, 0x60006060} },
+		['u'] = { .rows ={0x6C006C6C, 0x6C6C7C3C}},
 };
 
 static textOptions TEXT_OPT ={1,COLOR16_BLACK,COLOR16_WHITE};
@@ -98,7 +99,9 @@ void writeLetter(char letter, uint16_t x, uint16_t y,uint16_t color,uint16_t bac
     	for(uint8_t j=0; j<8;j++){
     			//fist half of letter
     			localBuffer[i][j] = (uint16_t)((g->rows[1]>>(i*8+j)) & 0x00000001) *color;
+    			//second half of letter
     			localBuffer[4+i][j] = (uint16_t)((g->rows[0]>>(i*8+j)) & 0x00000001) *color;
+    			//background
     			if(!((g->rows[0]>>(i*8+j)) & 0x00000001)) localBuffer[4+i][j]=background;
     			if(!((g->rows[1]>>(i*8+j)) & 0x00000001)) localBuffer[i][j]=background;
 
