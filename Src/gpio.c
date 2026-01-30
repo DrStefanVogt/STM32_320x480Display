@@ -17,6 +17,21 @@
 
 #define BTN_PIN			(1U<<13)
 
+void gpio_test(void)
+{
+	//very low level test to find right pins
+    RCC->AHB1ENR |= (1U << 0);   // GPIOA clock enable
+
+    // PA10 output
+    GPIOA->MODER &= ~(3U << (10*2));
+    GPIOA->MODER |=  (1U << (10*2));
+
+    while (1)
+    {
+        GPIOA->ODR ^= (1U << 10);
+        for (volatile uint32_t i = 0; i < 1000000; i++);
+    }
+}
 
 void led_init(void)
 {

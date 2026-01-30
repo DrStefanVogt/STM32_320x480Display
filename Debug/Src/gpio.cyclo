@@ -1,8 +1,9 @@
-../Src/gpio.c:21:6:led_init	1
-../Src/gpio.c:31:6:A0_init	1
-../Src/gpio.c:39:6:button_init	1
-../Src/gpio.c:51:6:led_on	1
-../Src/gpio.c:57:6:led_off	1
-../Src/gpio.c:65:6:get_btn_state	2
-../Src/gpio.c:82:6:A0_on	1
-../Src/gpio.c:86:6:A0_off	1
+../Src/gpio.c:20:6:gpio_test	2
+../Src/gpio.c:36:6:led_init	1
+../Src/gpio.c:46:6:A0_init	1
+../Src/gpio.c:54:6:button_init	1
+../Src/gpio.c:66:6:led_on	1
+../Src/gpio.c:72:6:led_off	1
+../Src/gpio.c:80:6:get_btn_state	2
+../Src/gpio.c:97:6:A0_on	1
+../Src/gpio.c:101:6:A0_off	1

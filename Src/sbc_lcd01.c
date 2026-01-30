@@ -48,9 +48,9 @@ void sendCommand16(uint16_t commandByte, const uint16_t *dataBytes,
 /*from adafruit_ST77cc.cpp*/
 void sbc_lcd01_init(){
 		uint8_t init_delay = 5;
-		displayReset();
-		systick_msec_sleep(init_delay);
 		spi_gpio_init();
+		systick_msec_sleep(init_delay);
+		displayReset();
 		systick_msec_sleep(init_delay);
 		spi1_config();
 		systick_msec_sleep(init_delay);
@@ -247,10 +247,9 @@ void testScreen_16(void){
 }
 void displayReset(void){
 	//reset pin aus und wieder an
-	A0_init();
-	A0_off();
-	systick_msec_delay(50); //50ms ist geraten, aber funktioniert
-	A0_on();
+	GPIOA->ODR &=~ (1U<<10);
+	systick_msec_sleep(20); //50ms war stabil, 20ms geraten, aber funktioniert
+	GPIOA->ODR |= (1U<<10);
 }
 void cs_enable(void)/*Pull low to enable*/
 {

@@ -27,7 +27,7 @@ void spi_gpio_init(void)
 	GPIOA->MODER &=~(1U<<14);
 	GPIOA->MODER |=(1U<<15);
 
-
+	/*PA8*/
 	GPIOA->MODER |=(1U<<18);
 	GPIOA->MODER &=~(1U<<19);
 

@@ -11,8 +11,9 @@
 
 
 
-int main(void){
 
+
+int main(void){
 	sbc_lcd01_init();
 	debugSineCosine();
 	systick_msec_delay(2500);
@@ -24,7 +25,7 @@ int main(void){
 	int16_t pos=0;
 
 	while(1){
-		systick_msec_sleep(1);
+		systick_msec_sleep(50);
 		digitLCDUpdate(number);
 		pos =(pos+1)%450;
 		number++;
