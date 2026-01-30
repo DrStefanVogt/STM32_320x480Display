@@ -12,55 +12,22 @@
 
 
 int main(void){
+
 	sbc_lcd01_init();
-	testScreen_16();
-	systick_msec_delay(500);
+	debugSineCosine();
+	systick_msec_delay(2500);
 	fullScreenColor(COLOR16_WHITE);
-	static const char oneWord[]="HALLO JESSICA! ";
-	static const char secondWord[] = " LIEBE GRuSSE!";
-	//rectangle(100,10,10,10,COLOR16_RED);
+	rectangle_empty(0,0,230,230,10,COLOR16_BLUE);
+	graphicsInit(COLOR16_GREEN, COLOR16_BLACK, 6);
+	digitLCDInit(25,40,40,50,19,5);
+	uint16_t number = 0;
 	int16_t pos=0;
-	textInit(1,COLOR16_WHITE,COLOR16_WHITE);
-	writeWord(secondWord,220,120,COLOR16_RED);
-	systick_msec_sleep(150);
-	rectangle(0,30,240,10,COLOR16_RED);
-	textInit(1,COLOR16_WHITE,COLOR16_BLACK);
-	rectangle(0,157,240,21,COLOR16_BLACK);
-	rectangle_empty(0,0,230,230,10,COLOR16_BLUE);
-	uint16_t angled = 2;
 
-	fullScreenColor(COLOR16_WHITE);
-	/*for (uint16_t i=0;i<240;i+=1){
-		rectangle(i,105+((sin_deg(i*2))>>2),3,3,COLOR16_GREEN);
-		rectangle(i,105+((cos_deg(i*2))>>2),3,3,COLOR16_RED);
-			//rectangle(i,90+((sin_deg(-i*4))>>2),3,3,COLOR16_LIGHTBLUE);
-			//rectangle(i,90+((cos_deg(i*4))>>2),3,3,COLOR16_RED);
-		}*/
-	//smilie();
-	graphicsInit(COLOR16_BLUE,COLOR16_WHITE,5);
-	/*for (uint16_t phi=0;phi<=360;phi+=45){
-		drawLine(155,165,40,phi);
-	}*/
-	rectangle_empty(0,0,230,230,10,COLOR16_BLUE);
-	//debugGrid();
-	graphicsInit( COLOR16_BLACK,COLOR16_WHITE, 5);
-
-	for(uint8_t n = 0; n<10;n++) {
-		drawDigit_LCD(castInt8ToChar(n),140,100);
-		systick_msec_sleep(150);
-		eraseDigit_LCD(castInt8ToChar(n),140,100);
-		//drawNumber_LCD('2',70,100);
-		//drawNumber_LCD('3',00,100);
-	}
-	graphicsInit(COLOR16_GREEN, COLOR16_BLACK, 5);
-	digitLCDInit(15,30,70,100,3);
-	uint8_t numbers[3]={1,2,3};
 	while(1){
-		//writeWord(oneWord,pos,15,COLOR16_GREEN);
-		systick_msec_sleep(100);
-		digitLCDUpdate(&numbers);
+		systick_msec_sleep(1);
+		digitLCDUpdate(number);
 		pos =(pos+1)%450;
-		//drawUint16(pos,100,100);
+		number++;
 		}
 
 }

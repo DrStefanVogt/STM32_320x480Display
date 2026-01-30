@@ -9,7 +9,7 @@
 #include "sbc_lcd01.h"
 
 uint16_t localBuffer[8][8];
-uint16_t singleColor = 0xFFFFF;
+uint16_t singleColor = 0xFFFF;
 uint16_t* singleBuffer = &singleColor;
 
 
@@ -27,8 +27,10 @@ typedef struct {
 	uint8_t thickness;
 	uint8_t xOffset;
 	uint8_t height;
-	char digits_prev[MAXDIGIT];
-	char digits[MAXDIGIT];
+	uint8_t width;
+	uint8_t frame;
+	char digits_prev[MAXDIGIT+1];
+	char digits[MAXDIGIT+1];
 	uint8_t digitNo;
 
 } LCDOptions ;
@@ -89,7 +91,7 @@ static const uint8_t sine_table[] = {0,4,8,13,17,22,26,31,35,39,44,48,53,57,61,6
 
 static textOptions TEXT_OPT ={1,COLOR16_BLACK,COLOR16_WHITE};
 static graphicsOptions GRAPH_OPT ={COLOR16_BLACK,COLOR16_WHITE};
-static LCDOptions LCD_OPT ={COLOR16_BLACK,COLOR16_WHITE,0,0,8,70,100,{'8','8','8','8','8'},{'8','8','8','8','8'}}; //depends on MAXDIGIT!
+static LCDOptions LCD_OPT ={COLOR16_BLACK,COLOR16_WHITE,0,0,8,70,100,{'8','8','8','8','8'},{'8','8','8','8','8'},5}; //depends on MAXDIGIT!
 
 void textInit(bool doubleSize, uint16_t color, uint16_t backgroundColor){
 	TEXT_OPT.doubleSized = doubleSize;
@@ -105,7 +107,7 @@ void graphicsInit( uint16_t color, uint16_t backgroundColor, uint8_t thickness){
 
 }
 
-void digitLCDInit(uint16_t x, uint16_t y, uint8_t xOffset, uint8_t height, uint8_t digitNo){
+void digitLCDInit(uint16_t x, uint16_t y, uint8_t xOffset, uint8_t height,uint8_t width, uint8_t digitNo){
 	//initialize LCD display of digitNo numbers on screen, use graphicsInit first to set basic parameters
 	LCD_OPT.color = GRAPH_OPT.color;
 	LCD_OPT.bgColor = GRAPH_OPT.bgColor;
@@ -115,22 +117,36 @@ void digitLCDInit(uint16_t x, uint16_t y, uint8_t xOffset, uint8_t height, uint8
 	LCD_OPT.xOffset = xOffset;
 	LCD_OPT.digitNo = digitNo;
 	LCD_OPT.height = height;
+	LCD_OPT.width = width;
+	LCD_OPT.frame = 10; //frame width in px
 	//fill background
-	rectangle(x-5,y-4,digitNo*xOffset,height, LCD_OPT.bgColor); //offsets 5,4 müssen noch justiert werden
+	rectangle(x-LCD_OPT.frame,y-LCD_OPT.frame,digitNo*xOffset+LCD_OPT.frame,height+2*LCD_OPT.frame, LCD_OPT.bgColor);
 	for (uint8_t i=0;i < digitNo;i++){
-		drawDigit_LCD(LCD_OPT.digits[i],x+i*LCD_OPT.xOffset,y);
+		drawDigit_LCD(LCD_OPT.digits[i],x+(i*LCD_OPT.xOffset),y);
+
 	}
 
 }
 
-void digitLCDUpdate(uint8_t* inputs){ //die inputs hätten auch in einer uint8_t platz
+void digitLCDUpdate(uint16_t input){
+	convertUint16ToChar(input,LCD_OPT.digits,LCD_OPT.digitNo);
+
 	for(uint8_t i=0;i< LCD_OPT.digitNo;i++){
-		eraseDigit_LCD(LCD_OPT.digits[i],LCD_OPT.x+i*LCD_OPT.xOffset,LCD_OPT.y);
-		LCD_OPT.digits[i]= castInt8ToChar(inputs[i]);
-		drawDigit_LCD(LCD_OPT.digits[i],LCD_OPT.x+i*LCD_OPT.xOffset,LCD_OPT.y); //hier könnte man die vorhandene funktion nehmen um uint16 zu char zu machen
-		//letztendlich muss hier aber eine update funktion hin, die auch den vorwert berücksichtigt
+		changeDigit_LCD(LCD_OPT.x+i*LCD_OPT.xOffset,LCD_OPT.y,i);
+		drawDigit_LCD(LCD_OPT.digits[i],LCD_OPT.x+i*LCD_OPT.xOffset,LCD_OPT.y);
 	}
 
+}
+void changeDigit_LCD(uint16_t x, uint16_t y, uint8_t i){
+	uint8_t new = castCharToByte(LCD_OPT.digits[i]);
+	uint8_t old = castCharToByte(LCD_OPT.digits_prev[i]);
+	//if(old == new) return;
+	uint8_t erase = (old & ~new);
+	uint16_t color = LCD_OPT.color;
+	LCD_OPT.color = LCD_OPT.bgColor;
+	draw_statusByte(erase,x,y);
+	LCD_OPT.color = color;
+	LCD_OPT.digits_prev[i] = LCD_OPT.digits[i];
 }
 
 void setGraphicsColor(uint16_t color){
@@ -147,7 +163,6 @@ void rectangle( uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_
 void rectangle_empty(uint16_t x, uint16_t y, uint16_t width, uint16_t height,uint8_t thickness, uint16_t color){
 	//draws an empty rectangle without changing the inside pixels
 	*singleBuffer=color;
-	uint8_t pixelNo[2]={width*thickness,height*thickness};
 	fillRectangle_oneColor(singleBuffer,x,y,width,thickness);
 	fillRectangle_oneColor(singleBuffer,x,y+height,width+thickness,thickness);
 	fillRectangle_oneColor(singleBuffer,x,y,thickness,width);
@@ -228,14 +243,14 @@ int16_t cos_deg(int16_t x){
 	return sin_deg(x-90);
 }
 
-void drawCircle(uint8_t x, uint8_t y, uint8_t d){
+void drawCircle(uint16_t x, uint16_t y, uint16_t d){
 	for (uint16_t deg=0;deg <= 360; deg+=5){
 		rectangle(x+sin_deg(deg)*d/255,y+cos_deg(deg)*d/255,GRAPH_OPT.thickness,GRAPH_OPT.thickness,GRAPH_OPT.color);
 	}
 	return;
 }
 
-void drawCircle_part(uint8_t x, uint8_t y, uint8_t d ,int16_t phi_start ,int16_t phi_stop){
+void drawCircle_part(uint16_t x, uint16_t y, uint16_t d ,int16_t phi_start ,int16_t phi_stop){
 	//phi=0 lowest point, draws clockwise, phi must be between -360 and +360, phi_start < phi_stop
 	for (int16_t deg=phi_start;deg <= phi_stop; deg+=5){
 		rectangle(x+sin_deg(deg)*d/255,y+cos_deg(deg)*d/255,GRAPH_OPT.thickness,GRAPH_OPT.thickness,GRAPH_OPT.color);
@@ -243,65 +258,38 @@ void drawCircle_part(uint8_t x, uint8_t y, uint8_t d ,int16_t phi_start ,int16_t
 	return;
 }
 
-void drawLine(uint8_t x, uint8_t y, uint8_t length, uint16_t phi){
+void drawLine(uint16_t x, uint16_t y, uint16_t length, uint16_t phi){
 	for (uint8_t step=0; step < length;step+=GRAPH_OPT.thickness>>1){
 		rectangle(x+(step*cos_deg(phi)/255),y+(step*sin_deg(phi)/255),GRAPH_OPT.thickness,GRAPH_OPT.thickness,GRAPH_OPT.color);
 	}
 }
 
-void drawUint16(uint16_t input, uint8_t x, uint8_t y)
+void drawUint16(uint16_t input, uint16_t x, uint16_t y, uint8_t max)
 	{
-
 	    char buffer[MAXDIGIT]={'0','0','0','0','0'};   // max "65535" + '\0'
-	    uint8_t i = 0;
-	    uint8_t max = 3;
-
-	    // Sonderfall 0
-	    if (input == 0) {
-	        buffer[0] = '0';
-	        buffer[1] = '\0';
-	        writeWord(buffer, x, y, TEXT_OPT.color);
-	        return;
-	    }
-
-	    // Zahl rückwärts zerlegen
-	    while (input > 0 && i < max) {
-	        buffer[i++] = '0' + (input % 10);
-	        input /= 10;
-	    }
-
-	    buffer[max] = '\0';
-
-	    // String umdrehen
-	    for (uint8_t j = 0; j < max / 2; j++) {
-	        char tmp = buffer[j];
-	        buffer[j] = buffer[max - 1 - j];
-	        buffer[max - 1 - j] = tmp;
-	    }
-
+	    convertUint16ToChar(input, buffer,max);
 	    writeWord(buffer, x, y, TEXT_OPT.color);
 	}
 
-void drawDigit_LCD(char num, uint8_t x, uint8_t y){
-	//draw screen numbers in digital clock style
-	 uint8_t thick = 8*2;
-	 uint8_t width = 35;
-	 uint8_t half_height = 45;
-	 uint8_t statusByte=0b11110111;
+void convertUint16ToChar(uint16_t input, char* buffer, uint8_t max){
 
-	 switch (num){
-	 	case '0': statusByte = 0b00111111;break;
-	 	case '1': statusByte = 0b00000011;break;
-	 	case '2': statusByte = 0b01110110;break;
-	 	case '3': statusByte = 0b01100111;break;
-	 	case '4': statusByte = 0b01001011;break;
-	    case '5': statusByte = 0b01101101;break;
-	    case '6': statusByte = 0b01111101;break;
-	   	case '7': statusByte = 0b00000111;break;
-	   	case '8': statusByte = 0b01111111;break;
-	   	case '9': statusByte = 0b01101111;break;
-	 }
+    for(uint8_t i = 0;i<=max;i++) {
+        buffer[i] = '0' + (input % 10);
+        input /= 10;
+    }
+}
 
+void drawDigit_LCD(char num, uint16_t x, uint16_t y){
+	//draw single screen digit in digital clock style
+	 uint8_t statusByte=castCharToByte(num);
+	 draw_statusByte(statusByte,x,y);
+
+}
+
+void draw_statusByte(uint8_t statusByte, uint16_t x, uint16_t y){
+	uint8_t thick = LCD_OPT.thickness;
+	uint8_t width = LCD_OPT.width;
+	uint8_t half_height = LCD_OPT.height>>1;
 	 //	 _
 	 // |_|
 	 // |_x
@@ -339,17 +327,10 @@ void drawDigit_LCD(char num, uint8_t x, uint8_t y){
 	 // |_|
 	 //----->
 	 if(statusByte & (1U << 6)) rectangle(x,y+half_height-thick/2,width+thick,thick,LCD_OPT.color);
-
-
-/*	 drawLine(x,y,thick*2,135);
-	 drawLine(x+width+thick/2,y,thick*2,45);
-	 drawLine(x,y+half_height-thick/2,thick*2,135);
-	 drawLine(x+width+thick/2,y+half_height-thick/2,thick*2,45);*/
-	 //drawLine(x+width+6+thick,y,thick*1.4,45);
 	 return;
-}
 
-void eraseDigit_LCD(char num, uint8_t x, uint8_t y){
+}
+void eraseDigit_LCD(char num, uint16_t x, uint16_t y){
 	//erase number with background color
 	uint16_t color = LCD_OPT.color;
 	LCD_OPT.color = LCD_OPT.bgColor;
@@ -365,7 +346,26 @@ char castInt8ToChar(uint8_t input){
 
 }
 
+uint8_t castCharToByte(char num){
 
+	 uint8_t statusByte=0b11110111;
+	 switch (num){
+	 	case '0': statusByte = 0b00111111;break;
+	 	case '1': statusByte = 0b00000011;break;
+	 	case '2': statusByte = 0b01110110;break;
+	 	case '3': statusByte = 0b01100111;break;
+	 	case '4': statusByte = 0b01001011;break;
+	    case '5': statusByte = 0b01101101;break;
+	    case '6': statusByte = 0b01111101;break;
+	   	case '7': statusByte = 0b00000111;break;
+	   	case '8': statusByte = 0b01111111;break;
+	   	case '9': statusByte = 0b01101111;break;
+	 }
+	 return statusByte;
+}
+//****************************************************************************************************
+//							debug functions
+//****************************************************************************************************
 
 void debugSmilie(void){
 	//just a smilie using circles - see if it looks ok
@@ -379,7 +379,7 @@ void debugSmilie(void){
 
 void debugGrid(void){
 	//draws a grid to simplify finding display locations. Big dots: 100 , small dots:10
-	for(uint8_t x=0;x <240; x+=10){
+	for(uint16_t x=0;x <240; x+=10){
 		for(uint8_t y=0 ;y <240; y+=10){
 			if(x%100 ==0 || y%100 ==0 ) rectangle(x,y,5,5,COLOR16_BLACK);
 			else rectangle(x,y,1,2,COLOR16_BLACK);
@@ -388,8 +388,28 @@ void debugGrid(void){
 	writeLetter('O',0,0,COLOR16_RED,COLOR16_BLACK);
 	}
 
-void initNumber_LCD(uint8_t x, uint8_t y, uint8_t digitNum){
+void debugSimpleCounter(void){
+	graphicsInit( COLOR16_BLACK,COLOR16_WHITE, 5);
 
-
+	for(uint8_t n = 0; n<10;n++) {
+		drawDigit_LCD(castInt8ToChar(n),140,100);
+		systick_msec_sleep(150);
+		eraseDigit_LCD(castInt8ToChar(n),140,100);
+}
 }
 
+void debugSineCosine(void){
+
+fullScreenColor(COLOR16_WHITE);
+for (uint16_t i=0;i<240;i+=1){
+	rectangle(i,105+((sin_deg(i*2))>>2),3,3,COLOR16_GREEN);
+	rectangle(i,105+((cos_deg(i*2))>>2),3,3,COLOR16_RED);
+}
+graphicsInit(COLOR16_BLUE,COLOR16_WHITE,5);
+
+for (uint16_t phi=0;phi<=360;phi+=45){
+		drawLine(155,165,40,phi);
+	}
+textInit(1, COLOR16_BLACK, COLOR16_WHITE);
+writeWord("STEFANS PROJEKT",215,10,COLOR16_BLACK);
+	}

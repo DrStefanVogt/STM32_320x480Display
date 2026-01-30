@@ -49,8 +49,7 @@
 #define MAXWORDLENGTH 25
 
 static volatile uint16_t windowBuffer[DISPLAY_X_MAX*2]; // define windowBuffer for
-static uint16_t lineBuffer[DISPLAY_X_MAX];
-static bool singleColorStatus;
+
 
 /*from adafruit_ST7789.cpp*/
 static const uint8_t generic_st7789[] ={                // Init commands for 7789 screens
@@ -88,8 +87,8 @@ void tft_dc_low(void);
 void tft_dc_high(void);
 void displayInit(const uint8_t *addr);
 void displayReset(void);
-void sendCommand(uint8_t commandByte, const uint8_t *dataBytes,
-                                  uint8_t numDataBytes);
+void sendCommand(uint8_t commandByte, const uint8_t *dataBytes, uint8_t numDataBytes);
+void initAdressWindow(uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 void sbc_lcd01_init();
 void fullScreenColor(uint16_t color);
 void testScreen_16(void);
