@@ -23,14 +23,14 @@ void color(uint16_t cin , uint8_t cout[2]) {
     cout[1] = cin & 0x00FF;
 }
 int main(void){
-    uint8_t r = 0;
-    uint8_t g = 0;
-    uint8_t b = 139;
+    uint8_t r = 135;
+    uint8_t g = 206;
+    uint8_t b = 250;
     uint16_t colorInput = color565(r,g,b);
     uint8_t Split[2];
     color(colorInput,Split);
     printf("color input:\n r: %hhu, g: %hhu, b: %hhu\n",r,g,b);
-    printf("color output:\n hi:%hhu\nlow:%hhu",Split[0],Split[1]);
+    printf("color output:\n hi:%02x\nlow:%02x",Split[0],Split[1]);
     printf("\n%u",3U);
     return 1;
 }

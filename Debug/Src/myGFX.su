@@ -23,4 +23,4 @@
 ../Src/myGFX.c:370:6:debugSmilie	24	static
 ../Src/myGFX.c:380:6:debugGrid	24	static
 ../Src/myGFX.c:391:6:debugSimpleCounter	16	static
-../Src/myGFX.c:401:6:debugSineCosine	24	static
+../Src/myGFX.c:401:6:debugSineCosine	40	static

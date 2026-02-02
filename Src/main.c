@@ -14,10 +14,13 @@
 
 
 int main(void){
-	sbc_lcd01_init();
+	//sbc_lcd01_init();
+	four_inch_init();
 	debugSineCosine();
-	systick_msec_delay(2500);
-	fullScreenColor(COLOR16_WHITE);
+	A0_init();
+	A0_on();
+	systick_msec_delay(1500);
+	//fullScreenColor(COLOR16_WHITE);
 	rectangle_empty(0,0,230,230,10,COLOR16_BLUE);
 	graphicsInit(COLOR16_GREEN, COLOR16_BLACK, 6);
 	digitLCDInit(25,40,40,50,19,5);
@@ -25,8 +28,8 @@ int main(void){
 	int16_t pos=0;
 
 	while(1){
-		systick_msec_sleep(50);
 		digitLCDUpdate(number);
+		systick_msec_sleep(50);
 		pos =(pos+1)%450;
 		number++;
 		}

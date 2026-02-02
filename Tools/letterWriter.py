@@ -5,7 +5,7 @@ import string
 BMP_DIR = "bmps"
 TXT_FILE = "arrays_and_hex.txt"
 SIZE = (8, 8)
-LETTERS = ["ü"]
+LETTERS = ["M"]
 
 os.makedirs(BMP_DIR, exist_ok=True)
 

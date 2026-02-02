@@ -58,7 +58,7 @@ static const Glyph font[] = {
 		['J'] = { .rows ={0x0C0C0C0C, 0x6C6C3030} },
 		['K'] = { .rows ={0x66666C7C, 0x706C6E66} },
 		['L'] = { .rows ={0x60606060, 0x60607C7C} },
-		['M'] = { .rows ={0x6161777F, 0x6D616161} },
+		['M'] = { .rows ={0xC3C3EFFF, 0xDBC3C3C3} },
 		['N'] = { .rows ={0x6666767E, 0x6E666666} },
 		['O'] = { .rows ={0x3C3C6666, 0x66667E3C} },
 		['P'] = { .rows ={0x7C7C667E, 0x7C606060} },
@@ -379,8 +379,8 @@ void debugSmilie(void){
 
 void debugGrid(void){
 	//draws a grid to simplify finding display locations. Big dots: 100 , small dots:10
-	for(uint16_t x=0;x <240; x+=10){
-		for(uint8_t y=0 ;y <240; y+=10){
+	for(uint16_t x=0;x <DISPLAY_X_MAX; x+=10){
+		for(uint16_t y=0 ;y <DISPLAY_Y_MAX; y+=10){
 			if(x%100 ==0 || y%100 ==0 ) rectangle(x,y,5,5,COLOR16_BLACK);
 			else rectangle(x,y,1,2,COLOR16_BLACK);
 		}
@@ -399,17 +399,23 @@ void debugSimpleCounter(void){
 }
 
 void debugSineCosine(void){
+uint32_t x = 0;
+uint32_t y =240;
 
 fullScreenColor(COLOR16_WHITE);
-for (uint16_t i=0;i<240;i+=1){
-	rectangle(i,105+((sin_deg(i*2))>>2),3,3,COLOR16_GREEN);
-	rectangle(i,105+((cos_deg(i*2))>>2),3,3,COLOR16_RED);
+for (uint16_t i=0;i<DISPLAY_X_MAX;i+=1){
+	rectangle(x+i,y+105+((sin_deg(i*2))>>2),3,3,COLOR16_BLUE);
+	rectangle(x+i,y+105+((cos_deg(i*2))>>2),3,3,COLOR16_LIGHTBLUE);
 }
-graphicsInit(COLOR16_BLUE,COLOR16_WHITE,5);
+graphicsInit(COLOR16_RED,COLOR16_WHITE,5);
 
-for (uint16_t phi=0;phi<=360;phi+=45){
-		drawLine(155,165,40,phi);
+for (uint16_t phi=0;phi<=360;phi+=15){
+		drawLine(x+50,y+195,20,phi);
 	}
+graphicsInit(COLOR16_BLACK,COLOR16_WHITE,5);
+drawLine(x+178,y+220,46,0);
+drawLine(x+155,y+220,62,270);
+drawCircle_part(155,425,30,-90,90);
 textInit(1, COLOR16_BLACK, COLOR16_WHITE);
-writeWord("STEFANS PROJEKT",215,10,COLOR16_BLACK);
+writeWord("STEFANS ANKERALARM",x+300,y+10,COLOR16_BLACK);
 	}

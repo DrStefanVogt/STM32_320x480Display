@@ -71,8 +71,8 @@ void spi1_config(void)
 	if(0){SPI1->CR1 |=(1U<<5);}else{SPI1->CR1 &=~(1U<<5);}
 
 	/*Set CPOL to 0 and CPHA to 0*/
-	if(1){SPI1->CR1 |=(1U<<0);}else{SPI1->CR1 &=~(1U<<0);}
-	if(1){SPI1->CR1 |=(1U<<1);}else{SPI1->CR1 &=~(1U<<1);}
+	if(0){SPI1->CR1 |=(1U<<0);}else{SPI1->CR1 &=~(1U<<0);}
+	if(0){SPI1->CR1 |=(1U<<1);}else{SPI1->CR1 &=~(1U<<1);}
 
 	/*Enable full duplex*/
 	SPI1->CR1 &=~(1U<<10);

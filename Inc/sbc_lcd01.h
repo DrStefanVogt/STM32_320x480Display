@@ -34,8 +34,8 @@
 #define ST7789_DISPOFF 0x28
 
 
-#define DISPLAY_X_MAX 240 //for 16 bit color_transfer
-#define DISPLAY_Y_MAX 241
+#define DISPLAY_X_MAX 320 //for 16 bit color_transfer
+#define DISPLAY_Y_MAX 480
 #define DISPLAY_PIXEL (DISPLAY_X_MAX * DISPLAY_Y_MAX)
 #define MAX_WINDOW_PIXEL (DISPLAY_X_MAX*16)
 
@@ -44,7 +44,7 @@
 #define COLOR16_RED 0xF800
 #define COLOR16_BLUE 0x00FD
 #define COLOR16_GREEN 0x1F00
-#define COLOR16_LIGHTBLUE 0xAAFF
+#define COLOR16_LIGHTBLUE 0x867F
 #define MAXDIGIT 5
 #define MAXWORDLENGTH 25
 
@@ -52,6 +52,10 @@ static volatile uint16_t windowBuffer[DISPLAY_X_MAX*2]; // define windowBuffer f
 
 
 /*from adafruit_ST7789.cpp*/
+/* FOR 7789: Remember to Set CPOL to 1 and CPHA to 1 in spi.c
+if(1){SPI1->CR1 |=(1U<<0);}else{SPI1->CR1 &=~(1U<<0);}
+if(1){SPI1->CR1 |=(1U<<1);}else{SPI1->CR1 &=~(1U<<1);}
+*/
 static const uint8_t generic_st7789[] ={                // Init commands for 7789 screens
 	    9,                              //  9 commands in list:
 	    ST77XX_SWRESET,   ST_CMD_DELAY, //  1: Software reset, no args, w/delay
@@ -81,6 +85,58 @@ static const uint8_t generic_st7789[] ={                // Init commands for 778
 	      10 };
 
 
+/* FOR 7796: Remember to Set CPOL to 0 and CPHA to 0 in spi.c
+if(0){SPI1->CR1 |=(1U<<0);}else{SPI1->CR1 &=~(1U<<0);}
+if(0){SPI1->CR1 |=(1U<<1);}else{SPI1->CR1 &=~(1U<<1);}
+*/
+static const uint8_t st7796s_init[] = {14, // 14 commands
+                                               ST77XX_SWRESET,
+                                               ST_CMD_DELAY, // Software reset
+                                               150,
+                                               0xF0,
+                                               1, // Unlock manufacturer
+                                               0xC3,
+                                               0xF0,
+                                               1,
+                                               0x96,
+                                               0xC5,
+                                               1, // VCOM Control
+                                               0x1C,
+                                               ST77XX_MADCTL,
+                                               1, // Memory Access
+                                               0x48,
+                                               ST77XX_COLMOD,
+                                               1, // Color Mode - 16 bit
+                                               0x55,
+                                               0xB0,
+                                               1, // Interface Control
+                                               0x80,
+                                               0xB4,
+                                               1, // Inversion Control
+                                               0x00,
+                                               0xB6,
+                                               3, // Display Function Control
+                                               0x80,
+                                               0x02,
+                                               0x3B,
+                                               0xB7,
+                                               1, // Entry Mode
+                                               0xC6,
+                                               0xF0,
+                                               1, // Lock manufacturer commands
+                                               0x69,
+                                               0xF0,
+                                               1,
+                                               0x3C,
+                                               ST77XX_SLPOUT,
+                                               ST_CMD_DELAY, // Exit sleep
+                                               150,
+                                               ST77XX_DISPON,
+                                               ST_CMD_DELAY, // Display on
+                                               150};
+
+
+void four_inch_init(void);
 void cs_enable(void);
 void cs_disable(void);
 void tft_dc_low(void);

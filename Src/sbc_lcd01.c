@@ -45,8 +45,8 @@ void sendCommand16(uint16_t commandByte, const uint16_t *dataBytes,
 
 }
 
-/*from adafruit_ST77cc.cpp*/
-void sbc_lcd01_init(){
+
+void sbc_lcd01_init(void){
 		uint8_t init_delay = 5;
 		spi_gpio_init();
 		systick_msec_sleep(init_delay);
@@ -57,6 +57,23 @@ void sbc_lcd01_init(){
 		spi_dma_init(windowBuffer);
 		systick_msec_sleep(init_delay);
 		displayInit(generic_st7789);
+		systick_msec_sleep(init_delay);
+		spi1_set16();
+		systick_msec_sleep(init_delay);
+		exti_init();
+	}
+
+void four_inch_init(void){
+		uint8_t init_delay = 500;
+		spi_gpio_init();
+		systick_msec_sleep(init_delay);
+		displayReset();
+		systick_msec_sleep(init_delay);
+		spi1_config();
+		systick_msec_sleep(init_delay);
+		spi_dma_init(windowBuffer);
+		systick_msec_sleep(init_delay);
+		displayInit(st7796s_init);
 		systick_msec_sleep(init_delay);
 		spi1_set16();
 		systick_msec_sleep(init_delay);
