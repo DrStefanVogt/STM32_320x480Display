@@ -151,5 +151,5 @@ void testScreen_16(void);
 void fillRectangle(uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uint8_t b);
 void fillSquare_scaleup(uint16_t (*buffer)[8], uint16_t x, uint16_t y, uint16_t a);
 void fillRectangle_oneColor(uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uint8_t b);
-void setsingleColorStatus(bool singleColor);
+void setSingleColorStatus(bool singleColor);
 #endif /* SBC_LCD01_H_ */

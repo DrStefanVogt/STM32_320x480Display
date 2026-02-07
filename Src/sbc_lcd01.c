@@ -16,52 +16,69 @@
 static uint16_t lineBuffer[DISPLAY_X_MAX];
 static bool singleColorStatus;
 
+/*3 basic ways to transmit data
+ * sendCommand = simplest form of 8 bit command used for display_init and initAdressWindow
+ * sendCommand16 = 16 bit single command used for all other functions to send commands to display before DMA data is transfered
+ * spi1_transmit_DMA = heavy duty display data transfer via DMA,
+ * */
+
 void sendCommand(uint8_t commandByte, const uint8_t *dataBytes,
                                   uint8_t numDataBytes) {
 	/*8 bit method, not working in 16 bit mode*/
-	spi1_set8();
+	//spi1_set8();
+	spi3_set8();
 	cs_enable();
 	tft_dc_low();
-	spi1_transmit(&commandByte,1); // Send the command byte
+	//spi1_transmit(&commandByte,1); // Send the command byte
+	spi3_transmit(&commandByte,1); // Send the command byte
 	tft_dc_high();
 	if (numDataBytes >0 && dataBytes!=NULL){
-		spi1_transmit(dataBytes,numDataBytes);
+		//spi1_transmit(dataBytes,numDataBytes);
+		spi3_transmit(dataBytes,numDataBytes);
+
 	}
 	cs_disable();
-	spi1_set16();
+	spi3_set16();
+	//spiset16();
 
 }
 
 void sendCommand16(uint16_t commandByte, const uint16_t *dataBytes,
                                   uint16_t numDataBytes) {
+	/* 16 bit method, goto for small commands that don't need a lot of data*/
 	cs_enable();
 	tft_dc_low();
-	spi1_transmit16(&commandByte,1); // Send the command byte
+	//spi1_transmit16(&commandByte,1); // Send the command byte
+	spi3_transmit16(&commandByte,1); // Send the command byte
 	tft_dc_high();
 	if (numDataBytes >0 && dataBytes!=NULL){
-		spi1_transmit16(dataBytes,numDataBytes);
+		//spi1_transmit16(dataBytes,numDataBytes);
+		spi3_transmit16(dataBytes,numDataBytes);
 	}
 	cs_disable();
 
 }
 
 
-void sbc_lcd01_init(void){
+/*void sbc_lcd01_init(void){
 		uint8_t init_delay = 5;
 		spi_gpio_init();
 		systick_msec_sleep(init_delay);
 		displayReset();
 		systick_msec_sleep(init_delay);
+		spi3_config();
+		systick_msec_sleep(init_delay);
 		spi1_config();
 		systick_msec_sleep(init_delay);
-		spi_dma_init(windowBuffer);
+		spi_dma1_init(windowBuffer);
 		systick_msec_sleep(init_delay);
 		displayInit(generic_st7789);
 		systick_msec_sleep(init_delay);
 		spi1_set16();
+		spi3_set16();
 		systick_msec_sleep(init_delay);
 		exti_init();
-	}
+	}*/
 
 void four_inch_init(void){
 		uint8_t init_delay = 500;
@@ -71,11 +88,14 @@ void four_inch_init(void){
 		systick_msec_sleep(init_delay);
 		spi1_config();
 		systick_msec_sleep(init_delay);
-		spi_dma_init(windowBuffer);
+		spi3_config();
+		systick_msec_sleep(init_delay);
+		spi_dma1_init(windowBuffer);
 		systick_msec_sleep(init_delay);
 		displayInit(st7796s_init);
 		systick_msec_sleep(init_delay);
 		spi1_set16();
+		spi3_set16();
 		systick_msec_sleep(init_delay);
 		exti_init();
 	}
@@ -112,7 +132,8 @@ void fullScreenColor(uint16_t color){
 			//set first windowBuffer to color
 			windowBuffer[0] =  color;
 			for (uint32_t line=0; line<DISPLAY_Y_MAX; line++){
-				spi1_transmit_DMA(DISPLAY_X_MAX);
+				//spi1_transmit_DMA(DISPLAY_X_MAX);
+				spi3_transmit_DMA(DISPLAY_X_MAX);
 				}
 			tft_dc_low();
 }
@@ -157,7 +178,7 @@ void fillRectangle(uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uint8_t b){
 	//sending Data via DMA
 	sendCommand16((uint16_t)ST77XX_RAMWR, NULL, 0);
 			tft_dc_high();
-			spi1_transmit_DMA(size);
+			spi3_transmit_DMA(size);
 			tft_dc_low();
 }
 
@@ -165,7 +186,7 @@ void fillRectangle_oneColor(uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uin
 	//fills a rectangular area of the screen with just one color defined by buffer[0]
 	//this way there is no need for the MPU to fill the whole buffer with a*b times the same element
 
-	setSingleColorStatus(1); //switch of DMA increment of buffer
+	setSingleColorStatus(1); //no DMA increment in buffer, one byte is send
 
 	//check for completely out of bounds
 	if((x+a<0) || (x >= DISPLAY_X_MAX ))return;
@@ -176,20 +197,20 @@ void fillRectangle_oneColor(uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uin
 	initAdressWindow(x, y, a, b);
 
 	//fill Buffer
-	windowBuffer[0]=buffer[0];
+	windowBuffer[0]=buffer[0];  //use only fist element because DMA increment is off
 
 	//sending Data via DMA
 
 	sendCommand16((uint16_t)ST77XX_RAMWR, NULL, 0);
 			tft_dc_high();
-			spi1_transmit_DMA(size);
+			spi3_transmit_DMA(size);
 			tft_dc_low();
 }
 
 void fillSquare_scaleup(uint16_t (*buffer)[8], uint16_t x, uint16_t y, uint16_t a){
 	//fill a square of size 2a x 2a with the contents of *buffer,
 	// use each pixel in buffer to fill 4 pixel in windowBuffer
-	setSingleColorStatus(0); //single color mode =off
+	setSingleColorStatus(0); //single color mode =off, DMA increment buffer
 	const uint8_t scale = 2;
 	uint16_t size = a*a;
 	for (uint8_t i=0; i < a;i++){
@@ -258,33 +279,38 @@ void testScreen_16(void){
 						break;
 				}
 			}
-				spi1_transmit16(lineBuffer,DISPLAY_X_MAX);
+				//spi1_transmit16(lineBuffer,DISPLAY_X_MAX);
+				spi3_transmit16(lineBuffer,DISPLAY_X_MAX);
 			}
 			tft_dc_low();
 }
 void displayReset(void){
-	//PA10
+	//PC01
 	//reset pin aus und wieder an
-	GPIOA->ODR &=~ (1U<<10);
+	GPIOC->ODR &=~ (1U<<1);
 	systick_msec_sleep(20); //50ms war stabil, 20ms geraten, aber funktioniert
-	GPIOA->ODR |= (1U<<10);
+	GPIOC->ODR |= (1U<<1);
 }
 void cs_enable(void)/*Pull low to enable*/
 {
-	GPIOA->ODR &=~(1U<<11);
+	/*----not used at the moment---*/
+	//GPIOA->ODR &=~(1U<<11);
 
 }
 
 void cs_disable(void) /*Pull high to disable*/
 {
-	GPIOA->ODR |=(1U<<11);
+	/*----not used at the moment---*/
+	//GPIOA->ODR |=(1U<<11);
 }
 
 void tft_dc_low(void){
-	GPIOA->ODR &=~(1U<<9);
+	//PC0 for data/control selection
+	GPIOC->ODR &=~(1U<<0);
 }
 void tft_dc_high(void){
-	GPIOA->ODR |=(1U<<9);
+	//PC0 for data/control selection
+	GPIOC->ODR |=(1U<<0);
 }
 
 void setSingleColorStatus(bool singleColor){
@@ -294,7 +320,8 @@ void setSingleColorStatus(bool singleColor){
 	}
 	else{
 		//set DMA mode
-		spi_dma_setSingleColorStatus(singleColor);
+		spi1_dma_setSingleColorStatus(singleColor);
+		spi3_dma_setSingleColorStatus(singleColor);
 		//update buffer
 		singleColorStatus = singleColor;
 	}

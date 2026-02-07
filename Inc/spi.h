@@ -4,7 +4,9 @@
 #define SPI_H_
 
 #define SPI1EN			(1U<<12)
+#define SPI3EN			(1U << 15)
 #define GPIOAEN			(1U<<0)
+#define GPIOCEN			(1U<<2)
 
 #define SR_TXE			(1U<<1)
 #define SR_RXNE			(1U<<0)

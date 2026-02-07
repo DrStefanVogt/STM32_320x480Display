@@ -33,8 +33,11 @@ Neu: SPI3
 	PC10 - AF06 SPI3_SCK 
 	PC11 - AF06	SPI_MISO (not needed)
 	PC12 - AF06 SPI3_MOSI
+	PC00			tft_dc
+	PC01		display reset
+	NA			cs_enable...only needed when using mulitple dispalys
 
-DMA1 (Stream4 oder Stream7) Ch0
+DMA1 (Stream5(!) oder Stream7) Ch0
 
 USART1
 
@@ -42,3 +45,5 @@ PA9 - AF07 USART1_TX
 PA10 - AF07 USART1_RX
 
 DMA2 Stream2 ch4  USART1_RX (tabelle 28. DMA request mapping- RM0383 Rev4)
+
+06022026 - der DMA transfer geht noch nicht. die pins sind richtig testscreen geht. NDRT zählt nicht runter... 
