@@ -6,7 +6,6 @@
  */
 #include "spi.h"
 #include "sbc_lcd01.h"
-#include "exti.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -19,28 +18,23 @@ static bool singleColorStatus;
 /*3 basic ways to transmit data
  * sendCommand = simplest form of 8 bit command used for display_init and initAdressWindow
  * sendCommand16 = 16 bit single command used for all other functions to send commands to display before DMA data is transfered
- * spi1_transmit_DMA = heavy duty display data transfer via DMA,
+ * spi3_transmit_DMA = heavy duty display data transfer via DMA,
  * */
 
 void sendCommand(uint8_t commandByte, const uint8_t *dataBytes,
                                   uint8_t numDataBytes) {
 	/*8 bit method, not working in 16 bit mode*/
-	//spi1_set8();
 	spi3_set8();
 	cs_enable();
 	tft_dc_low();
-	//spi1_transmit(&commandByte,1); // Send the command byte
 	spi3_transmit(&commandByte,1); // Send the command byte
 	tft_dc_high();
 	if (numDataBytes >0 && dataBytes!=NULL){
-		//spi1_transmit(dataBytes,numDataBytes);
 		spi3_transmit(dataBytes,numDataBytes);
 
 	}
 	cs_disable();
 	spi3_set16();
-	//spiset16();
-
 }
 
 void sendCommand16(uint16_t commandByte, const uint16_t *dataBytes,
@@ -48,11 +42,9 @@ void sendCommand16(uint16_t commandByte, const uint16_t *dataBytes,
 	/* 16 bit method, goto for small commands that don't need a lot of data*/
 	cs_enable();
 	tft_dc_low();
-	//spi1_transmit16(&commandByte,1); // Send the command byte
 	spi3_transmit16(&commandByte,1); // Send the command byte
 	tft_dc_high();
 	if (numDataBytes >0 && dataBytes!=NULL){
-		//spi1_transmit16(dataBytes,numDataBytes);
 		spi3_transmit16(dataBytes,numDataBytes);
 	}
 	cs_disable();
@@ -60,33 +52,11 @@ void sendCommand16(uint16_t commandByte, const uint16_t *dataBytes,
 }
 
 
-/*void sbc_lcd01_init(void){
-		uint8_t init_delay = 5;
-		spi_gpio_init();
-		systick_msec_sleep(init_delay);
-		displayReset();
-		systick_msec_sleep(init_delay);
-		spi3_config();
-		systick_msec_sleep(init_delay);
-		spi1_config();
-		systick_msec_sleep(init_delay);
-		spi_dma1_init(windowBuffer);
-		systick_msec_sleep(init_delay);
-		displayInit(generic_st7789);
-		systick_msec_sleep(init_delay);
-		spi1_set16();
-		spi3_set16();
-		systick_msec_sleep(init_delay);
-		exti_init();
-	}*/
-
 void four_inch_init(void){
-		uint8_t init_delay = 500;
+		uint8_t init_delay = 1;
 		spi_gpio_init();
 		systick_msec_sleep(init_delay);
 		displayReset();
-		systick_msec_sleep(init_delay);
-		spi1_config();
 		systick_msec_sleep(init_delay);
 		spi3_config();
 		systick_msec_sleep(init_delay);
@@ -94,10 +64,9 @@ void four_inch_init(void){
 		systick_msec_sleep(init_delay);
 		displayInit(st7796s_init);
 		systick_msec_sleep(init_delay);
-		spi1_set16();
 		spi3_set16();
-		systick_msec_sleep(init_delay);
-		exti_init();
+		A0_init();
+		A0_on();
 	}
 
 void displayInit(const uint8_t *addr) {
@@ -111,7 +80,6 @@ void displayInit(const uint8_t *addr) {
     numArgs = *addr++;   // Number of args to follow
     ms = numArgs & ST_CMD_DELAY;       // If hibit set, delay follows args
     numArgs &= ~ST_CMD_DELAY;          // Mask out delay bit
-    //spi1_transmit(cmd,1);
     sendCommand(cmd, addr, numArgs);
     addr += numArgs;
 
@@ -132,7 +100,6 @@ void fullScreenColor(uint16_t color){
 			//set first windowBuffer to color
 			windowBuffer[0] =  color;
 			for (uint32_t line=0; line<DISPLAY_Y_MAX; line++){
-				//spi1_transmit_DMA(DISPLAY_X_MAX);
 				spi3_transmit_DMA(DISPLAY_X_MAX);
 				}
 			tft_dc_low();
@@ -279,7 +246,6 @@ void testScreen_16(void){
 						break;
 				}
 			}
-				//spi1_transmit16(lineBuffer,DISPLAY_X_MAX);
 				spi3_transmit16(lineBuffer,DISPLAY_X_MAX);
 			}
 			tft_dc_low();
@@ -320,7 +286,6 @@ void setSingleColorStatus(bool singleColor){
 	}
 	else{
 		//set DMA mode
-		spi1_dma_setSingleColorStatus(singleColor);
 		spi3_dma_setSingleColorStatus(singleColor);
 		//update buffer
 		singleColorStatus = singleColor;

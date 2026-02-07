@@ -19,15 +19,13 @@
 #include <stdint.h>
 
 void spi_gpio_init(void);
-void spi1_config(void);
-void spi1_set16(void);
-void spi1_DMA_enable(void);
-void spi1_transmit(uint8_t *data,uint32_t size);
-void spi1_transmit16(uint16_t *data,uint32_t size);
-void spi1_receive(uint8_t *data,uint32_t size);
+void spi3_config(void);
+void spi3_DMA_enable(void);
+void spi3_transmit(uint8_t *data,uint32_t size);
+void spi3_transmit16(uint16_t *data,uint32_t size);
 void cs_enable(void);
 void cs_disable(void);
-void spi1_set8(void);
-void spi1_set16(void);
+void spi3_set8(void);
+void spi3_set16(void);
 char castNumToChar(uint8_t input);
 #endif /* SPI_H_ */

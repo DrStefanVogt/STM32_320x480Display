@@ -12,7 +12,6 @@
 #include <stdint.h>
 #include <math.h>
 #include "systick.h"
-#include "exti.h"
 
 #ifndef SBC_LCD01_H_
 #define SBC_LCD01_H_
@@ -50,39 +49,6 @@
 
 static volatile uint16_t windowBuffer[DISPLAY_X_MAX*2]; // define windowBuffer for
 
-
-/*from adafruit_ST7789.cpp*/
-/* FOR 7789: Remember to Set CPOL to 1 and CPHA to 1 in spi.c
-if(1){SPI1->CR1 |=(1U<<0);}else{SPI1->CR1 &=~(1U<<0);}
-if(1){SPI1->CR1 |=(1U<<1);}else{SPI1->CR1 &=~(1U<<1);}
-*/
-static const uint8_t generic_st7789[] ={                // Init commands for 7789 screens
-	    9,                              //  9 commands in list:
-	    ST77XX_SWRESET,   ST_CMD_DELAY, //  1: Software reset, no args, w/delay
-	      150,                          //     ~150 ms delay
-	    ST77XX_SLPOUT ,   ST_CMD_DELAY, //  2: Out of sleep mode, no args, w/delay
-	      10,                          //      10 ms delay
-	    ST77XX_COLMOD , 1+ST_CMD_DELAY, //  3: Set color mode, 1 arg + delay:
-	      0x55,                         //     16-bit color
-	      10,                           //     10 ms delay
-	    ST77XX_MADCTL , 1,              //  4: Mem access ctrl (directions), 1 arg:
-	      0x00,                         //     Row/col addr, bottom-top refresh
-	    ST77XX_CASET  , 4,              //  5: Column addr set, 4 args, no delay:
-	      0x00,
-	      0,        //     XSTART = 0
-	      0,
-	      240,  //     XEND = 240
-	    ST77XX_RASET  , 4,              //  6: Row addr set, 4 args, no delay:
-	      0x00,
-	      0,             //     YSTART = 0
-	      239>>8,
-	      239&0xFF,  //     YEND =239
-	    ST77XX_INVON  ,   ST_CMD_DELAY,  //  7: hack
-	      10,
-	    ST77XX_NORON  ,   ST_CMD_DELAY, //  8: Normal display on, no args, w/delay
-	      10,                           //     10 ms delay
-	    ST77XX_DISPON ,   ST_CMD_DELAY, //  9: Main screen turn on, no args, delay
-	      10 };
 
 
 /* FOR 7796: Remember to Set CPOL to 0 and CPHA to 0 in spi.c

@@ -25,17 +25,14 @@ char msg_buff[150] ={'\0'};
 int main(void){
 	//sbc_lcd01_init();
 	four_inch_init();
-	A0_init();
-	A0_on();
 	testScreen_16();
 	debugSineCosine();
-	systick_msec_delay(1500);
+	systick_msec_delay(1000);
 	rectangle_empty(0,0,230,230,10,COLOR16_BLUE);
 	graphicsInit(COLOR16_GREEN, COLOR16_BLACK, 6);
 	digitLCDInit(25,40,40,50,19,5);
 	uint16_t number = 0;
 	int16_t pos=0;
-	uint32_t length=1;
 	//uart_init();
 
 	 //dma1_init();

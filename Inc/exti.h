@@ -15,7 +15,6 @@
 #define 	LINE13		(1U<<13)
 
 void exti_init(void);
-void DMA2_Stream3_IRQHandler(void);
 void DMA1_Stream5_IRQHandler(void);
 
 
