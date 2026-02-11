@@ -1,7 +1,5 @@
 # ===== STM32CubeIDE =====
 .settings/
-.project
-.cproject
 
 # ===== Build output =====
 Debug/
@@ -9,7 +7,6 @@ Release/
 
 # ===== Debug / IDE artifacts =====
 *.launch
-stm32.ctb
 .stm32.ctb*
 
 # ===== Editor / OS =====
@@ -21,3 +18,4 @@ Thumbs.db
 
 # ===== Optional logs =====
 devlog.txt
+sending.txt

@@ -37,23 +37,13 @@ int main(void){
 	uart_init();
 	uint16_t number = 0;
 
-//	 uart2_rx_tx_init();
-//	 dma1_init();
-	 sprintf(msg_buff,"Initialization...cmplt\n\r");
-//	 dma1_stream6_uart_tx_config((uint32_t)msg_buff,strlen(msg_buff));
-//     while(!g_tx_cmplt){}
-
 	while(1){
 		digitLCDUpdate(number);
 		systick_msec_sleep(50);
-//		pos =(pos+1)%450;
 		number++;
-//		g_tx_cmplt = 0;
 		dma2_stream7_uart_tx_config((uint32_t)msg_buff,strlen(msg_buff));
 		sprintf(msg_buff,"number %d\n\r",number);
 		printf(msg_buff);
-//		dma1_stream6_uart_tx_config((uint32_t)msg_buff,strlen(msg_buff));
-//		while(!g_tx_cmplt){}
 		}
 
 }

@@ -50,6 +50,8 @@ uint8_t g_uart_cmplt;
 
 void uart1_rx_tx_init(void)
 {
+//	PA9...USART1_TX
+//	PA10...USART1_RX
 	/*************Configure UART GPIO pin********************/
 	/*1.Enable clock access to GPIOA*/
 	RCC->AHB1ENR |= GPIOAEN;
