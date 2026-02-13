@@ -3,8 +3,8 @@
 #include <stdint.h>
 #include "stm32f4xx.h"
 
-#define UART_DATA_BUFF_SIZE		5
-#define UART_INPUT_BUFFER_SIZE 10
+#define UART_DATA_BUFF_SIZE		128
+#define UART_TRANSFER_BUFFER_SIZE 128
 
 void uart1_rx_tx_init(void);
 void dma2_init(void);

@@ -5,6 +5,7 @@
 #define GPIOAEN			(1U<<0)
 
 #define CR1_TE			(1U<<3)
+#define CR1_IDLEIE		(1U<<4)
 #define CR1_RE			(1U<<2)
 #define CR1_UE			(1U<<13)
 #define SR_TXE			(1U<<7)
@@ -12,9 +13,10 @@
 #define CR3_DMAT		(1U<<7)
 #define CR3_DMAR		(1U<<6)
 #define SR_TC			(1U<<6)
+#define SR_IDLE			(1U<<4)
 #define CR1_TCIE		(1U<<6)
 
-#define UART_BAUDRATE	115200
+#define UART_BAUDRATE	9600
 #define CLK				16000000
 
 #define DMA1EN			    (1U<<21)
@@ -44,12 +46,13 @@ static uint16_t compute_uart_bd(uint32_t periph_clk, uint32_t baudrate);
 static void uart_set_baudrate(uint32_t periph_clk, uint32_t baudrate);
 
 char uart_data_buffer[UART_DATA_BUFF_SIZE];
-char uart_dma_input_buffer[UART_INPUT_BUFFER_SIZE];
+char uart_dma_transfer_buffer[UART_TRANSFER_BUFFER_SIZE];
 
 uint8_t g_rx_cmplt;
 uint8_t g_tx_cmplt;
 
 uint8_t g_uart_cmplt;
+uint8_t g_uart_idle;
 
 void uart1_rx_tx_init(void)
 {
@@ -95,6 +98,11 @@ void uart1_rx_tx_init(void)
 
 	/*10.Clear TC flag*/
 	 USART1->SR &=~SR_TC;
+	 /*10a Clear IDLE flag*/
+	 USART1->SR &=~SR_IDLE;
+
+	 /*11a Enable IDLEI - idle interrupt*/
+	 USART1->CR1 |= CR1_IDLEIE;
 
 	/*11.Enable TCIE*/
 	 USART1->CR1 |=CR1_TCIE;
@@ -102,7 +110,7 @@ void uart1_rx_tx_init(void)
 	/*12. Enable uart module*/
 	 USART1->CR1 |= CR1_UE;
 
-	 /*13.Enable USART2 interrupt in the NVIC*/
+	 /*13.Enable USART1 interrupt in the NVIC*/
 	 NVIC_EnableIRQ(USART1_IRQn);
 
 }
@@ -152,8 +160,8 @@ void dma2_stream2_uart_rx_config(void)
 	/*Enable transfer complete interrupt*/
 	DMA2_Stream2->CR |= DMA_SCR_TCIE;
 
-	/*Enable Circular mode*/
-	DMA2_Stream2->CR |=DMA_SCR_CIRC;
+	/*Disble Circular mode*/
+	DMA2_Stream2->CR &=~DMA_SCR_CIRC;
 
 	/*Set transfer direction : Periph to Mem*/
 	DMA2_Stream2->CR &=~(1U<<6);
@@ -241,21 +249,52 @@ void DMA2_Stream2_IRQHandler(void)
 	{
 		/*set complete flag*/
 		g_rx_cmplt = 1;
-		/*add received data to inputBuffer*/
-		for (uint8_t i=0;i<UART_DATA_BUFF_SIZE;i++){
-			uart_dma_input_buffer[i]=uart_data_buffer[i];
-		}
-
 		/*Clear the flag*/
 		DMA2->LIFCR |= LIFCR_CTCIF2;
+		printf("DMA2_Stream2 IRQ\r\n");
 	}
 }
 void USART1_IRQHandler(void)
 {
-	g_uart_cmplt  = 1;
+	if(USART1->SR & SR_TC){
+		g_uart_cmplt  = 1;
+		printf("TC interrupt\r\n");
+		/*Clear TC interrupt flag*/
+		USART1->SR &=~SR_TC;
+	}
+	if(USART1->SR & SR_IDLE){
+		volatile uint32_t tmp;
+		g_uart_idle  = 1;
+
+		/*Clear TC interrupt flag*/
+		USART1->SR &=~SR_TC;
+		/*Clear IDLE interrupt flag*/
+		tmp = USART1->SR; //flag is cleared by reading these two registers...read carfully
+		tmp = USART1->DR;
+
+		printf("idle interrupt\r\n");
+		/*Disable DMA stream*/
+		DMA2_Stream2->CR &=~DMA_SCR_EN;
+		/*Wait till DMA Stream is disabled*/
+		while((DMA2_Stream2->CR & DMA_SCR_EN)){}
+		uint8_t data_rec = UART_DATA_BUFF_SIZE - DMA2_Stream2->NDTR;
+		uint8_t end=1;
+		for(uint8_t i =0;i<data_rec;i++){
+			uart_dma_transfer_buffer[i] = uart_data_buffer[i];
+			end++;
+		}
+		uart_dma_transfer_buffer[end]='\0';
+		DMA2_Stream2->NDTR = UART_DATA_BUFF_SIZE;
+		/*enable DMA Stream*/
+		DMA2_Stream2->CR |= DMA_SCR_EN;
+
+	}
 
 	/*Clear TC interrupt flag*/
 	USART1->SR &=~SR_TC;
+	/*Clear IDLE interrupt flag*/
+	USART1->SR &=~SR_IDLE;
+
 }
 
 
