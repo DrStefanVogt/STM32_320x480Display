@@ -15,10 +15,11 @@
 extern uint8_t g_rx_cmplt;
 extern uint8_t g_uart_cmplt;
 extern uint8_t g_tx_cmplt;
+extern uint8_t g_uart_idle;
 
 extern char pc_uart_data_buffer[DEBUG_UART_DATA_BUFF_SIZE];
 extern char uart_dma_transfer_buffer[UART_TRANSFER_BUFFER_SIZE];
-char msg_buff[150] ={'\0'};
+char msg_buff[UART_TRANSFER_BUFFER_SIZE] ={'\0'};
 char GPGSV[15]={'\0'};
 
 
@@ -40,25 +41,21 @@ int main(void){
 	dma2_stream7_uart_tx_config((uint32_t)msg_buff,strlen(msg_buff));
 	while(1){
 		digitLCDUpdate(number);
-		systick_msec_sleep(500);
+		systick_msec_sleep(10);
 		number++;
 
-		if(g_rx_cmplt){
-			uint8_t j=0;
-//			for(uint8_t i=0;i<150;i++){
-				// look for end of msg_buff
-//				if(msg_buff[i]!='\0' && i==j) j++;
-//			}
-			printf("end of buffer %i\t",j);
-//			if (j>50) j = 0;
-			for(uint8_t i=0;i<UART_TRANSFER_BUFFER_SIZE;i++){
-				msg_buff[i+j] = uart_dma_transfer_buffer[i];
+		if(g_uart_idle || g_tx_cmplt){
+
+			for(uint16_t i=0;i<UART_TRANSFER_BUFFER_SIZE;i++){
+				msg_buff[i] = uart_dma_transfer_buffer[i];
+				if (uart_dma_transfer_buffer[i]=='\0') break;
 			}
-			g_rx_cmplt =0;
+			g_rx_cmplt = 0;
+			g_uart_idle = 0;
 			printf("%s\r\n",msg_buff);
 		}
-		printf(".");
-		fflush(stdout);
+	/*	printf(".");
+		fflush(stdout);*/
 		}
 
 }

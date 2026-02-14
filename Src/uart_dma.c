@@ -122,7 +122,7 @@ void dma2_init(void)
 	RCC->AHB1ENR |=DMA2EN;
 
 	/*Enable DMA2 Stream2 Interrupt in NVIC*/
-	NVIC_EnableIRQ(DMA2_Stream2_IRQn);
+	//NVIC_EnableIRQ(DMA2_Stream2_IRQn);
 }
 
 
@@ -171,7 +171,7 @@ void dma2_stream2_uart_rx_config(void)
 	DMA2_Stream2->CR |= DMA_SCR_EN;
 
 	/*Enable DMA2 Stream2 Interrupt in NVIC*/
-	NVIC_EnableIRQ(DMA2_Stream2_IRQn);
+//	NVIC_EnableIRQ(DMA2_Stream2_IRQn);
 
 }
 
@@ -257,43 +257,45 @@ void DMA2_Stream2_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
 	if(USART1->SR & SR_TC){
+		volatile uint32_t tmp;
 		g_uart_cmplt  = 1;
 		printf("TC interrupt\r\n");
 		/*Clear TC interrupt flag*/
-		USART1->SR &=~SR_TC;
+		USART1->SR &=~SR_TC; //is allowed see RM0383 page 545
+
 	}
+
 	if(USART1->SR & SR_IDLE){
+
 		volatile uint32_t tmp;
 		g_uart_idle  = 1;
 
-		/*Clear TC interrupt flag*/
-		USART1->SR &=~SR_TC;
 		/*Clear IDLE interrupt flag*/
-		tmp = USART1->SR; //flag is cleared by reading these two registers...read carfully
+		tmp = USART1->SR; //flag is cleared by reading these two registers
 		tmp = USART1->DR;
 
-		printf("idle interrupt\r\n");
 		/*Disable DMA stream*/
 		DMA2_Stream2->CR &=~DMA_SCR_EN;
 		/*Wait till DMA Stream is disabled*/
 		while((DMA2_Stream2->CR & DMA_SCR_EN)){}
-		uint8_t data_rec = UART_DATA_BUFF_SIZE - DMA2_Stream2->NDTR;
-		uint8_t end=1;
-		for(uint8_t i =0;i<data_rec;i++){
+
+		uint16_t data_rec = UART_DATA_BUFF_SIZE - DMA2_Stream2->NDTR;
+		for(uint16_t i =0;i<data_rec;i++){
 			uart_dma_transfer_buffer[i] = uart_data_buffer[i];
-			end++;
 		}
-		uart_dma_transfer_buffer[end]='\0';
+		uart_dma_transfer_buffer[data_rec]='\0';
+		/*DMA reset*/
 		DMA2_Stream2->NDTR = UART_DATA_BUFF_SIZE;
+		/*Clear interrupt flags for stream 2*/
+		DMA2->LIFCR |= (1U<<18);
+		DMA2->LIFCR |= (1U<<19);
+		DMA2->LIFCR |= (1U<<20);
+		DMA2->LIFCR |= LIFCR_CTCIF2;
 		/*enable DMA Stream*/
 		DMA2_Stream2->CR |= DMA_SCR_EN;
 
-	}
 
-	/*Clear TC interrupt flag*/
-	USART1->SR &=~SR_TC;
-	/*Clear IDLE interrupt flag*/
-	USART1->SR &=~SR_IDLE;
+	}
 
 }
 
