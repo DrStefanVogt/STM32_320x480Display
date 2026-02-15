@@ -5,7 +5,7 @@ import string
 BMP_DIR = "bmps"
 TXT_FILE = "arrays_and_hex.txt"
 SIZE = (8, 8)
-LETTERS = ["M"]
+LETTERS = ["$",","]
 
 os.makedirs(BMP_DIR, exist_ok=True)
 
@@ -73,7 +73,7 @@ def main():
 
     # BMPs erzeugen & einlesen
     for letter in LETTERS:
-        bmp_path = createNO_bmp(letter, font)
+        bmp_path = create_bmp(letter, font)
         array = bmp_to_bool_array(bmp_path)
         hex32 = array_to_hex32(array)
         results[letter] = (array, hex32)

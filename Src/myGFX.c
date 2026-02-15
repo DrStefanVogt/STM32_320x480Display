@@ -84,6 +84,8 @@ static const Glyph font[] = {
 		['9'] = { .rows ={0x30306C7C, 0x3C0C7C70} },
 		['!'] = { .rows ={0x60606060, 0x60006060} },
 		['u'] = { .rows ={0x6C006C6C, 0x6C6C7C3C}},
+		['$'] = { .rows ={0x30303C7C, 0x7C0C7070}},
+		[','] = { .rows ={0x00000000, 0x00003070} },
 };
 
 // sine_table: 0..255 corresponds to sin(x)*255
@@ -191,8 +193,10 @@ void writeLetter(char letter, uint16_t x, uint16_t y,uint16_t color,uint16_t bac
 	else fillRectangle(localBuffer,x,y,letterHeight,letterWidth);
 }
 
-void writeWord(const char *word, uint16_t x, uint16_t y,uint16_t color){
-		uint8_t spacing = 15;
+void writeWord(const char *word, uint16_t x, uint16_t y){
+		uint8_t spacing;
+		if (TEXT_OPT.doubleSized) spacing = 15;
+		else spacing = 8;
 		int16_t cursor = -spacing;
 		for(uint8_t i=0 ; word[i] !='\0'; i++){
 			switch(word[i-1]){
@@ -205,7 +209,7 @@ void writeWord(const char *word, uint16_t x, uint16_t y,uint16_t color){
 			default:
 			cursor += spacing;
 			}
-			writeLetter((char)word[i],x-cursor,y,color,TEXT_OPT.bgColor);
+			writeLetter((char)word[i],x-cursor,y,TEXT_OPT.color,TEXT_OPT.bgColor);
 
 			if (i==MAXWORDLENGTH) break;
 		}
@@ -268,7 +272,7 @@ void drawUint16(uint16_t input, uint16_t x, uint16_t y, uint8_t max)
 	{
 	    char buffer[MAXDIGIT]={'0','0','0','0','0'};   // max "65535" + '\0'
 	    convertUint16ToChar(input, buffer,max);
-	    writeWord(buffer, x, y, TEXT_OPT.color);
+	    writeWord(buffer, x, y);
 	}
 
 void convertUint16ToChar(uint16_t input, char* buffer, uint8_t max){
@@ -417,5 +421,5 @@ drawLine(x+178,y+220,46,0);
 drawLine(x+155,y+220,62,270);
 drawCircle_part(155,425,30,-90,90);
 textInit(1, COLOR16_BLACK, COLOR16_WHITE);
-writeWord("STEFANS ANKERALARM",x+300,y+10,COLOR16_BLACK);
+writeWord("STEFANS ANKERALARM",x+300,y+10);
 	}

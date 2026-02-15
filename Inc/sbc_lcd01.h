@@ -45,7 +45,7 @@
 #define COLOR16_GREEN 0x1F00
 #define COLOR16_LIGHTBLUE 0x867F
 #define MAXDIGIT 5
-#define MAXWORDLENGTH 25
+#define MAXWORDLENGTH 50
 
 static volatile uint16_t windowBuffer[DISPLAY_X_MAX*2]; // define windowBuffer for
 
