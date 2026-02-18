@@ -194,6 +194,7 @@ void writeLetter(char letter, uint16_t x, uint16_t y,uint16_t color,uint16_t bac
 }
 
 void writeWord(const char *word, uint16_t x, uint16_t y){
+	//assumes '\0' endend string
 		uint8_t spacing;
 		if (TEXT_OPT.doubleSized) spacing = 15;
 		else spacing = 8;

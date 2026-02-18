@@ -43,6 +43,7 @@ int main(void){
 	fullScreenColor(COLOR16_WHITE);
 	digitLCDInit(25,40,40,50,19,5);
 	textInit(0,COLOR16_BLUE,COLOR16_WHITE);
+	init_nmea_buffer();
 //	debugGrid();
 	while(1){
 		digitLCDUpdate(number);
@@ -64,11 +65,22 @@ int main(void){
 			}
 			g_rx_cmplt = 0;
 			g_uart_idle = 0;
+
+		identNMEASentence();
+		writeWord(nmea_buffer[GPGLL],300,450);
+		printf("*******************************\r\n");
+		printf("%s",nmea_buffer[GPGLL]);
+		printf("*******************************\r\n");
+		for (uint8_t i=0;i<NMEA_BURST_NO ;i++){
+			if (GPGSV[i]==0) break;
+			writeWord(nmea_buffer[GPGSV[i]],300,430-i*10);
+			printf("%s",nmea_buffer[GPGSV[i]]);
+
 		}
 
-		for (uint8_t i=0;i<15;i++){
-			writeWord(nmea_buffer[i],300,450-i*10);
-			printf("%s",nmea_buffer[i]);
+		}
+		for (uint8_t i=0;i<NMEA_BURST_NO;i++){
+//			printf("%s",nmea_buffer[i]);
 		}
 	/*	printf(".");
 		fflush(stdout);*/

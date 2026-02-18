@@ -258,7 +258,7 @@ void USART1_IRQHandler(void)
 	if(USART1->SR & SR_TC){
 		volatile uint32_t tmp;
 		g_uart_cmplt  = 1;
-		printf("TC interrupt\r\n");
+		//printf("TC interrupt\r\n");
 		/*Clear TC interrupt flag*/
 		USART1->SR &=~SR_TC; //is allowed see RM0383 page 545
 

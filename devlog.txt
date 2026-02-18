@@ -50,3 +50,6 @@ DMA2 Stream7 ch4 USART1_TX
 06022026 - der DMA transfer geht noch nicht. die pins sind richtig testscreen geht. NDRT zählt nicht runter...gelöst! Stream4 war falsch für TX ist es Stream5
 
 03022026 - die NMEA commands sollen gelesen werden. Da sie keine feste länge haben muss ich die UART-DMA verbindung so auslegen, dass die Commands successive gelesen werden. Nutzte jetzt den idle interrupt vom USART 
+
+18022026 - zu viele Sateliten bei test draußen, muss buffer vergrößern
+			- merklicher lag (~200ms) bei vielen Sateliten, liegt an der Grafik
