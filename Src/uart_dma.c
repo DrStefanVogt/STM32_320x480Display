@@ -250,7 +250,8 @@ void DMA2_Stream2_IRQHandler(void)
 		g_rx_cmplt = 1;
 		/*Clear the flag*/
 		DMA2->LIFCR |= LIFCR_CTCIF2;
-		printf("DMA2_Stream2 IRQ\r\n");
+		//this should not happen. If it does it means that the number of elements transfered by DMA is too large
+		printf("Error: DMA2_Stream2 IRQ overflow\r\n");
 	}
 }
 void USART1_IRQHandler(void)
