@@ -13,6 +13,8 @@
 #define CMD4(a,b,c,d) ((uint32_t)(a)<<24 | (uint32_t)(b)<<16 | (uint32_t)(c)<<8 | (uint32_t)(d))
 
 
+
+
 extern uint8_t GPGLL;
 extern uint8_t GPGSV[NMEA_BURST_NO];
 extern uint8_t GPGSA[NMEA_BURST_NO];
@@ -20,4 +22,6 @@ extern uint8_t GPGSA[NMEA_BURST_NO];
 void init_nmea_buffer(char* uart_data);
 void identNMEASentence(uint32_t nmea_this);
 const char* getPositionSentence(void);
+bool validate_nmea_checksum(const char *sentence);
+uint8_t read_from_hex(const char *input);
 #endif //NMEA_H

@@ -46,12 +46,13 @@ int main(void){
 //	debugGrid();
 	while(1){
 		digitLCDUpdate(number);
-		systick_msec_sleep(10);
+		systick_msec_sleep(100);
 		number++;
 		if(g_uart_idle){
+			g_uart_idle = 0;
 			init_nmea_buffer(uart_data_buffer);
 			writeWord(getPositionSentence(),300,450);
-			printf("%s\r\n", getPositionSentence());
+			//printf("%s\r\n", getPositionSentence());
 		}
 
 	}

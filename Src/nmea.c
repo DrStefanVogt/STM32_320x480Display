@@ -15,6 +15,13 @@ typedef struct {
 
 static nmea_buffer n;
 
+static const int8_t hex_lut[256] = {
+    ['0']=0,['1']=1,['2']=2,['3']=3,['4']=4,
+    ['5']=5,['6']=6,['7']=7,['8']=8,['9']=9,
+    ['A']=10,['B']=11,['C']=12,['D']=13,['E']=14,['F']=15,
+    ['a']=10,['b']=11,['c']=12,['d']=13,['e']=14,['f']=15
+};
+
 void init_nmea_buffer(char* uart_data){
 	//	init
 	n.GNSS_POS[0]= '\0';
@@ -42,6 +49,7 @@ void init_nmea_buffer(char* uart_data){
 		pos += 4; //skip 4 elements with cursor. cursor should be on first real data byte now
 
 		char* writeTo_ptr = NULL; //pointer to right storage position
+		if(!validate_nmea_checksum(&uart_data[uart_i])) continue;
 		switch(nmea_this){
 			case CMD4('N','G','L','L'):
 //				GNGLL = GNSS position
@@ -65,8 +73,8 @@ void init_nmea_buffer(char* uart_data){
 		//loop that finally writes the data into the buffer
 		for (uint8_t i=0;i<remaining_data;i++){ //for loop to avoid buffer overrun
 			pos++;
-			//check for end of statement
-			if (uart_data[uart_i+pos]=='\r' || uart_data[uart_i+pos]=='\n'){
+			//check for end of statement, '*' means checksum is reached
+			if (uart_data[uart_i+pos]=='*' ||uart_data[uart_i+pos]=='\r' || uart_data[uart_i+pos]=='\n'){
 				writeTo_ptr[i] = '\0';
 				uart_i +=pos;
 				break;
@@ -83,3 +91,33 @@ const char* getPositionSentence(void){
 	else return n.GNSS_POS;
 }
 
+
+bool validate_nmea_checksum(const char *sentence)
+{
+    uint8_t checksum = 0;
+    uint8_t checksum_rec=0;
+
+    // Skip leading '$' if present
+    if (*sentence == '$') {
+        sentence++;
+    }
+
+    // XOR until '*' or end of string
+    while (*sentence && *sentence != '*') {
+        checksum ^= (uint8_t)(*sentence);
+        sentence++;
+    }
+    if(*sentence == '*') sentence++;
+    checksum_rec = read_from_hex(sentence);
+    if (checksum_rec == checksum) return 1;
+    else{
+    	printf("Checksum Error. %x, %x\r\n",checksum,checksum_rec);
+        return 0;
+    }
+}
+
+uint8_t read_from_hex(const char *input){
+	uint8_t output;
+	output = (uint8_t) ((hex_lut[(uint8_t)input[0]] << 4) |  hex_lut[(uint8_t)input[1]]);
+	return output;
+}
