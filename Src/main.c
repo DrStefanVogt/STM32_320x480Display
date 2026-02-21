@@ -52,6 +52,10 @@ int main(void){
 			g_uart_idle = 0;
 			init_nmea_buffer(uart_data_buffer);
 			writeWord(getPositionSentence(),300,450);
+			for (uint8_t i=0;i < NMEA_GPGSV_NUM;i++){
+				writeWord(getGSGSVSentence(i),300,400-(i*10));
+				printf("%s\r\n",getGSGSVSentence(i));
+			}
 			//printf("%s\r\n", getPositionSentence());
 		}
 

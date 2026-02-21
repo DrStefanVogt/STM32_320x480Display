@@ -11,6 +11,7 @@
 typedef struct {
 	char GPS_POS[NMEA_SENTENCE_LENGTH];
 	char GNSS_POS[NMEA_SENTENCE_LENGTH];
+	char GPGSV[NMEA_GPGSV_NUM][NMEA_SENTENCE_LENGTH];
 } nmea_buffer;
 
 static nmea_buffer n;
@@ -22,12 +23,17 @@ static const int8_t hex_lut[256] = {
     ['a']=10,['b']=11,['c']=12,['d']=13,['e']=14,['f']=15
 };
 
+static inline uint8_t min_u8(uint8_t a, uint8_t b) {
+    return (a < b) ? a : b;
+};
+
 void init_nmea_buffer(char* uart_data){
 	//	init
 	n.GNSS_POS[0]= '\0';
 	n.GPS_POS[0]= '\0';
 	//going through the uart_data which is fed NMEA sentences by DMA, find valid sentences at collect them in struct nmea_buffer
 	uint16_t uart_i = 0;
+	uint8_t gpgsv_i = 0;
 	while(uart_i < UART_DATA_BUFF_SIZE){
 		bool sent_start = 0; //no active sentence detected
 		uint8_t pos = 0;  //'cursor' position
@@ -60,7 +66,9 @@ void init_nmea_buffer(char* uart_data){
 				writeTo_ptr = n.GNSS_POS;
 				break;
 			case CMD4('P','G','S','V'):
-				writeTo_ptr = NULL; //Not yet used
+//				Data about Satelites in view
+				writeTo_ptr = n.GPGSV[gpgsv_i++];
+				if(gpgsv_i > NMEA_GPGSV_NUM) gpgsv_i = 0;
 				break;
 			case CMD4('P','G','S','A'):
 				writeTo_ptr = NULL; //Not yet used
@@ -91,6 +99,11 @@ const char* getPositionSentence(void){
 	else return n.GNSS_POS;
 }
 
+const char* getGSGSVSentence(uint8_t num){
+	uint8_t i = min_u8(num,NMEA_GPGSV_NUM);
+	return n.GPGSV[i];
+
+}
 
 bool validate_nmea_checksum(const char *sentence)
 {
