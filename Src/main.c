@@ -26,6 +26,7 @@ char msg_buff[UART_DATA_BUFF_SIZE] ={'\0'}; //this will be obsolete after nmea_b
 
 
 int main(void){
+	SCB->CPACR |= (0xF << 20);  // Enable CP10 + CP11 for float
 	four_inch_init();
 	testScreen_16();
 	debugSineCosine();
@@ -43,20 +44,20 @@ int main(void){
 	digitLCDInit(25,40,40,50,19,5);
 	textInit(0,COLOR16_BLUE,COLOR16_WHITE);
 	init_nmea_buffer(uart_data_buffer);
+	setGPGSV(1);
 //	debugGrid();
 	while(1){
 		digitLCDUpdate(number);
-		systick_msec_sleep(100);
+		systick_msec_sleep(10);
 		number++;
-		if(g_uart_idle){
+		if(g_uart_idle){  //wait for end of NMEA Sentence transmisson, complete loop must be shorter than 1000ms
 			g_uart_idle = 0;
 			init_nmea_buffer(uart_data_buffer);
 			writeWord(getPositionSentence(),300,450);
-			for (uint8_t i=0;i < NMEA_GPGSV_NUM;i++){
-				writeWord(getGSGSVSentence(i),300,400-(i*10));
-				printf("%s\r\n",getGSGSVSentence(i));
-			}
-			//printf("%s\r\n", getPositionSentence());
+//			printf("*******************************************\r\n%s\r\n*******************************************\r\n",getPositionSentence());
+			printf("$GNRMC,%s\r\n",getGNRMCSentence());
+			printf("%f\r\n",getLattitude());
+
 		}
 
 	}

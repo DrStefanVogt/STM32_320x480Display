@@ -10,6 +10,9 @@
 #define NMEA_SENTENCE_LENGTH 90 //maximum number of chars in one NMEA sentence, https://en.wikipedia.org/wiki/NMEA_0183 says max 83 Chars
 #define NMEA_ID_LENGTH 6 //NMEA idenification i.e. length($GPGSV)
 #define NMEA_GPGSV_NUM 10 //maximum number of GPGSV sentences
+#define NMEA_STATEMENTS_PER_SENTENCE 15 //maxium statements of NMEA sentence ($GXXXX,statement1,statement2,statement3...)
+#define NMEA_CHARACTERS_PER_STATEMENT 11 //maximum characters per NMEA statement ($GXXXX,statement1,statement2,statement3...)
+
 
 #define CMD4(a,b,c,d) ((uint32_t)(a)<<24 | (uint32_t)(b)<<16 | (uint32_t)(c)<<8 | (uint32_t)(d))
 
@@ -24,7 +27,13 @@ void init_nmea_buffer(char* uart_data);
 void identNMEASentence(uint32_t nmea_this);
 const char* getPositionSentence(void);
 const char* getGSGSVSentence(uint8_t num);
+const char* getGNRMCSentence(void);
+void splitNMEASentence(const char *input, char output[NMEA_STATEMENTS_PER_SENTENCE][NMEA_CHARACTERS_PER_STATEMENT]);
 bool validate_nmea_checksum(const char *sentence);
 uint8_t read_from_hex(const char *input);
+
+float getLattitude(void);
+
+void setGPGSV(bool on);
 
 #endif //NMEA_H

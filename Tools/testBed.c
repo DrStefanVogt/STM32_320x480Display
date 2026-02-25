@@ -5,7 +5,6 @@ int new=1;
 uint16_t testC=0xA8FF;
 uint8_t out[2];
 
-uint16_t* ptr =&;
 
 uint32_t A[2]={0x7E666666,0x3C3C667E};
 
@@ -32,8 +31,6 @@ int main() {
             }
     } 
 
-ptr = 124;
-printf("\n\n ptrValue:\t%d",ptr);
   return 0;
 }
 

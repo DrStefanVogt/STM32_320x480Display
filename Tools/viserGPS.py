@@ -6,29 +6,25 @@ import os
 import sys
 import time
 import string
+from collections import deque
 
-PORT = "COM3"
-BAUDRATE = 9600  # ggf. 9600
+PORT = "COM7"
+BAUDRATE = 115200  # ggf. 9600
 run_GPS = True
 
-def nmea_to_decimal(coord, direction):
-    if not coord:
-        return None
+MAX_POINTS = 300
+TIME_SCALE = 0.02
+SPEED_SCALE = 0.05
 
-    # Latitude = 2 Gradstellen, Longitude = 3
-    if direction in ["N", "S"]:
-        degrees = float(coord[:2])
-        minutes = float(coord[2:])
-    else:
-        degrees = float(coord[:3])
-        minutes = float(coord[3:])
+# --------- Zeitspuren ----------
+times = deque(maxlen=MAX_POINTS)
+lats = deque(maxlen=MAX_POINTS)
+lons = deque(maxlen=MAX_POINTS)
+speeds = deque(maxlen=MAX_POINTS)
 
-    decimal = degrees + minutes / 60.0
-    if direction in ["S", "W"]:
-        decimal *= -1
-
-    return decimal
-
+plot_N = 200
+points = np.random.normal(size=(plot_N, 2, 3)) * 3.0
+colors = np.random.randint(0, 255, size=(plot_N, 2, 3))
 
 def gps_thread(point_cloud, gui_elements):
     global serial_connection
@@ -36,49 +32,50 @@ def gps_thread(point_cloud, gui_elements):
     try:
         print(f"Opening serial port {PORT} @ {BAUDRATE} baud")
         serial_connection = serial.Serial(PORT, BAUDRATE, timeout=1)
-        
+        lat_before = 0
         while run_GPS:
             os.system('clear')
             if not serial_connection or not serial_connection.is_open:
                 break
             line = serial_connection.readline().decode(errors="ignore").strip()
-            lon_at = line.find('$GPGLL')
-            satelites_at = line.find('$GPGSV')
-            gptxt_at = line.find('$GPTXT')
-            if(not lon_at):
-                gui_elements["lon"].value = f"{line[lon_at+6:-1]}"
-            if(not satelites_at):
-                gui_elements["speed"].value = f"{line[satelites_at:-1]}"
-                print(line)
-            if(not gptxt_at):
-                 gui_elements["course"].value = f"{line[lon_at+6:-1]}"
-            
+   
             if not line:
                 continue
+            
+            parts = line.split(",")
+            lat = float(parts[3])
+            lon = float(parts[5])
+            speed = float(parts[7])
+            course = parts[8]
+            utc_time = parts[1]
+            
             gui_elements['lat'].value="hey"
             # RAW Konsole aktualisieren
-            gui_elements["raw"].value =f"{line}"
+ 
+            gui_elements["time"].value =f"{parts[1]}"
+            gui_elements["lat"].value = f"{lat_before - float(parts[3])}"
+            gui_elements["lon"].value = f"{parts[5]}"
+            gui_elements["speed"].value = f"{parts[7]}"
+            gui_elements["course"].value = f"{parts[8]}"
+            lat_before = float(parts[3])
+            
+            times.append(utc_time)
+            lats.append(lat)
+            lons.append(lon)
+            speeds.append(speed)
+                    
+            # -------- Live Plot (Polyline!) --------
+            
+            points = np.random.normal(size=(plot_N, 2, 3)) * 3.0
+            colors = np.random.randint(0, 255, size=(plot_N, 2, 3))
+            server.scene.add_line_segments(
+                "/line_segments",
+                points=points,
+                colors=colors,
+                line_width=3.0,
+)
 
-            if line.startswith("$GPRMC"):
-                parts = line.split(",")
-
-                if len(parts) > 8 and parts[2] == "A":  # gültiger Fix
-                    lat = nmea_to_decimal(parts[3], parts[4])
-                    lon = nmea_to_decimal(parts[5], parts[6])
-                    speed = parts[7]
-                    course = parts[8]
-                    utc_time = parts[1]
-
-                    if lat is not None and lon is not None:
-                        pos = np.array([[lon, lat, 0.0]])
-                        point_cloud.points = pos
-
-                        # GUI aktualisieren
-                        gui_elements["lat"].value = f"{lat:.6f}"
-                        gui_elements["lon"].value = f"{lon:.6f}"
-                        gui_elements["speed"].value = f"{speed} kn"
-                        gui_elements["course"].value = f"{course}°"
-                        gui_elements["time"].value = utc_time
+                  
 
     except serial.SerialException as e:
         print("Serial Fehler:", e)
@@ -93,6 +90,8 @@ def gps_thread(point_cloud, gui_elements):
 
 
 def main():
+    global server
+    global server
     server = viser.ViserServer()
     print("Viser läuft auf http://localhost:8080")
     
@@ -111,10 +110,10 @@ def main():
 
     # --- 3D Punkt ---
     point_cloud = server.scene.add_point_cloud(
-        name="/gps_point",
-        points=np.array([[0.0, 0.0, 0.0]]),
-        colors=np.array([[1.0, 0.2, 0.2]]),
-        point_size=10.0,
+    name="/gps_point",
+    points=np.array([[0.0, 0.0, 0.0]]),
+    colors=np.array([[1.0, 0.2, 0.2]]),
+    point_size=0.1,
     )
 
     # --- GUI ---
@@ -136,6 +135,7 @@ def main():
         "time": time_text,
         "raw": raw_data,
     }
+
 
     gps_thread1= threading.Thread(
         target=gps_thread,
