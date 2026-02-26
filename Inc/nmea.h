@@ -32,8 +32,16 @@ void splitNMEASentence(const char *input, char output[NMEA_STATEMENTS_PER_SENTEN
 bool validate_nmea_checksum(const char *sentence);
 uint8_t read_from_hex(const char *input);
 
+
+void dropAnchor(uint16_t time_seconds,float lattitude, float longitude);
+
 float getLattitude(void);
+float getLongitude(void);
+float getTime(void);
+
+
 
 void setGPGSV(bool on);
+float stringToFloat(const char *input);
 
 #endif //NMEA_H

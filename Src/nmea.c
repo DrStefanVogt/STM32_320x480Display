@@ -12,12 +12,20 @@ typedef struct {
 	char GPS_POS[NMEA_SENTENCE_LENGTH];
 	char GNSS_POS[NMEA_SENTENCE_LENGTH];
 	char GNRMC[NMEA_SENTENCE_LENGTH];
+	char GNRMC_split[NMEA_STATEMENTS_PER_SENTENCE][NMEA_CHARACTERS_PER_STATEMENT];
 	char GPGSV[NMEA_GPGSV_NUM][NMEA_SENTENCE_LENGTH];
 	bool GPGSV_on;
 	bool GNRMC_on;
 } nmea_buffer;
 
+typedef struct {
+	float lattitude;
+	float longitude;
+	uint16_t time_seconds;
+}anchor;
+
 static nmea_buffer n;
+static anchor a;
 
 static bool debug =0;
 static const int8_t hex_lut[256] = {
@@ -103,7 +111,17 @@ void init_nmea_buffer(char* uart_data){
 
 		}
 	}
+	if(n.GNRMC_on) splitNMEASentence(n.GNRMC,n.GNRMC_split); //since GNRMXC is the most important sentence it is always split and saved when it comes. Could by directly saved to bits for optimization, but not now.
 }
+
+void dropAnchor(uint16_t time_seconds,float lattitude, float longitude){
+	a.time_seconds = time_seconds;
+	a.lattitude = lattitude;
+	a.longitude = longitude;
+	return;
+}
+
+
 const char* getPositionSentence(void){
 	//return GNSS position if available, else return GPS only position
 	if (n.GNSS_POS[0] == '\0') return n.GPS_POS;
@@ -122,10 +140,17 @@ const char* getGSGSVSentence(uint8_t num){
 }
 
 float getLattitude(void){
-	char output[NMEA_STATEMENTS_PER_SENTENCE][NMEA_CHARACTERS_PER_STATEMENT];
-	splitNMEASentence(n.GNRMC,output);
-	float lattitude = 2.5f; //TODO output[2];
+	float lattitude = stringToFloat(n.GNRMC_split[2]);
 	return lattitude;
+}
+
+float getLongitude(void){
+	float lattitude = stringToFloat(n.GNRMC_split[4]);
+	return lattitude;
+}
+float getTime(void){
+	float time = stringToFloat(n.GNRMC_split[0]);
+	return time;
 }
 
 bool validate_nmea_checksum(const char *sentence)
@@ -185,3 +210,24 @@ void splitNMEASentence(const char *input, char output[NMEA_STATEMENTS_PER_SENTEN
 	    for (;k<NMEA_STATEMENTS_PER_SENTENCE;k++) output[k][0]='\0';
 	}
 
+float stringToFloat(const char *input){
+	float output = 0.0f;
+	int8_t sign;
+	float scale=1.0f;
+
+	if (*input == '-') sign=-1;
+	else sign=1;
+
+	while (*input && *input != '.'){
+		output = output * 10.0f + (*input++ - '0');
+	}
+	if (*input == '.'){
+		input++;
+		while (*input){
+			scale *= 0.1f;
+			output += (*input++ -'0') * scale;
+		}
+	}
+
+	return sign * output;
+}

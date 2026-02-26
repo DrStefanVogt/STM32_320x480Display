@@ -43,8 +43,18 @@ int main(void){
 	fullScreenColor(COLOR16_WHITE);
 	digitLCDInit(25,40,40,50,19,5);
 	textInit(0,COLOR16_BLUE,COLOR16_WHITE);
-	init_nmea_buffer(uart_data_buffer);
 	setGPGSV(1);
+	while (getTime()== 0){
+		init_nmea_buffer(uart_data_buffer);
+		systick_msec_sleep(100);
+		printf("waiting for GNSS...\r\n");
+		systick_msec_sleep(100);
+	}//wait for GNRMSentence to arrive
+	{
+		float lat = getLattitude();
+		float lon = getLongitude();
+		dropAnchor((uint16_t)getTime(),lat,lon); //calling getL..() inside the dropAnchor(..) leads to crashes. buzzwords from chatGPT: ARM-ABI, S0/S1
+	}
 //	debugGrid();
 	while(1){
 		digitLCDUpdate(number);
@@ -56,7 +66,10 @@ int main(void){
 			writeWord(getPositionSentence(),300,450);
 //			printf("*******************************************\r\n%s\r\n*******************************************\r\n",getPositionSentence());
 			printf("$GNRMC,%s\r\n",getGNRMCSentence());
-			printf("%f\r\n",getLattitude());
+//			printf("$GSGSV,%s\r\n", getGSGSVSentence(0));
+//			printf("$GSGSV,%s\r\n", getGSGSVSentence(1));
+//			printf("$GSGSV,%s\r\n", getGSGSVSentence(2));
+			printf("%i: %f,%f\r\n",(uint16_t)(getTime()-163808.0f),getLattitude(),getLongitude());
 
 		}
 
