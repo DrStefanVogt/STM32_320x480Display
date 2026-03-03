@@ -19,8 +19,8 @@ typedef struct {
 } nmea_buffer;
 
 typedef struct {
-	float lattitude;
-	float longitude;
+	int32_t lattitude;
+	int32_t longitude;
 	uint16_t time_seconds;
 }anchor;
 
@@ -114,7 +114,7 @@ void init_nmea_buffer(char* uart_data){
 	if(n.GNRMC_on) splitNMEASentence(n.GNRMC,n.GNRMC_split); //since GNRMXC is the most important sentence it is always split and saved when it comes. Could by directly saved to bits for optimization, but not now.
 }
 
-void dropAnchor(uint16_t time_seconds,float lattitude, float longitude){
+void dropAnchor(uint16_t time_seconds,int32_t lattitude,int32_t longitude){
 	a.time_seconds = time_seconds;
 	a.lattitude = lattitude;
 	a.longitude = longitude;
@@ -139,18 +139,26 @@ const char* getGSGSVSentence(uint8_t num){
 
 }
 
-float getLattitude(void){
-	float lattitude = stringToFloat(n.GNRMC_split[2]);
+int32_t getLattitude(void){
+	int32_t lattitude = stringToU32e4(n.GNRMC_split[2]);
 	return lattitude;
 }
 
-float getLongitude(void){
-	float lattitude = stringToFloat(n.GNRMC_split[4]);
+int32_t getLongitude(void){
+	int32_t lattitude = stringToU32e4(n.GNRMC_split[4]);
 	return lattitude;
 }
 float getTime(void){
 	float time = stringToFloat(n.GNRMC_split[0]);
 	return time;
+}
+
+int16_t getDeltaLatt(void){
+	return getLattitude() - a.lattitude;
+}
+
+int16_t getDeltaLon(void){
+	return getLongitude() - a.longitude;
 }
 
 bool validate_nmea_checksum(const char *sentence)
@@ -171,8 +179,8 @@ bool validate_nmea_checksum(const char *sentence)
     checksum_received = read_from_hex(sentence);
     if (checksum_received == checksum) return 1;
     else{
-    	printf("Checksum Error. %x, %x\r\n",checksum,checksum_received);
-        printf("This sentence was: %s", sentence);
+    	 if (debug) printf("Checksum Error. %x, %x\r\n",checksum,checksum_received);
+    	 if (debug) printf("This sentence was: %s", sentence);
         return 0;
     }
 }
@@ -229,5 +237,26 @@ float stringToFloat(const char *input){
 		}
 	}
 
+	return sign * output;
+}
+
+int32_t stringToU32e4(const char *input){
+	int32_t output = 0;
+	int8_t sign = 1;
+	int8_t e4scale = 4;
+
+	if (*input == '-') sign=-1;
+
+	while (*input && *input != '.'){
+		output = output * 10 + (*input++ - '0');
+	}
+	if (*input == '.'){
+		input++;
+		while (e4scale > 0){
+			e4scale--;
+            if (*input)	output = output * 10 + (*input++ - '0');
+            else output *= 10;
+		}
+	}
 	return sign * output;
 }

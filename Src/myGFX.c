@@ -8,6 +8,8 @@
 #include "myGFX.h"
 #include "sbc_lcd01.h"
 
+#define COLOR_SPECTRUM_NO 5
+
 uint16_t localBuffer[8][8];
 uint16_t singleColor = 0xFFFF;
 uint16_t* singleBuffer = &singleColor;
@@ -94,6 +96,9 @@ static const uint8_t sine_table[] = {0,4,8,13,17,22,26,31,35,39,44,48,53,57,61,6
 static textOptions TEXT_OPT ={1,COLOR16_BLACK,COLOR16_WHITE};
 static graphicsOptions GRAPH_OPT ={COLOR16_BLACK,COLOR16_WHITE};
 static LCDOptions LCD_OPT ={COLOR16_BLACK,COLOR16_WHITE,0,0,8,70,100,{'8','8','8','8','8'},{'8','8','8','8','8'},5}; //depends on MAXDIGIT!
+
+static uint16_t colorSpectrum[COLOR_SPECTRUM_NO] = {COLOR16_BLACK, COLOR16_BLUE, COLOR16_RED, COLOR16_LIGHTBLUE,COLOR16_GREEN};
+
 
 void textInit(bool doubleSize, uint16_t color, uint16_t backgroundColor){
 	TEXT_OPT.doubleSized = doubleSize;
@@ -246,6 +251,10 @@ int16_t cos_deg(int16_t x){
 	if(x>=360) x= x-360;
 	//NOTE: -360<x<360 is required
 	return sin_deg(x-90);
+}
+void drawSquare(uint16_t x, uint16_t y, uint16_t a){
+	rectangle(x,y,a,a,GRAPH_OPT.color);
+	return;
 }
 
 void drawCircle(uint16_t x, uint16_t y, uint16_t d){
@@ -424,3 +433,12 @@ drawCircle_part(155,425,30,-90,90);
 textInit(1, COLOR16_BLACK, COLOR16_WHITE);
 writeWord("STEFANS ANKERALARM",x+300,y+10);
 	}
+
+nextColor(void){
+	static uint16_t nextColor;
+	if (nextColor < COLOR_SPECTRUM_NO) nextColor++;
+	else nextColor = 0;
+	setGraphicsColor(colorSpectrum[nextColor]);
+	return;
+}
+

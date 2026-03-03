@@ -29,14 +29,36 @@ void splitNMEASentence(const char *input, char output[NMEA_STATEMENTS_PER_SENTEN
 
 
 int main() {
-  const char* testSentence = "131751.000,A,5429.4170,N,00943.9242,E,0.30,75.08,240226,,,A,V\0";
+  const char* testSentence = "131751.000,A,5429.417,N,00943.9242,E,0.30,75.08,240226,,,A,V\0";
   char output[NMEA_STATEMENTS_PER_SENTENCE][NMEA_CHARACTERS_PER_STATEMENT];
   printf("testsentence: %s\n", testSentence);
   printf("output before: %s\n", output);
   splitNMEASentence(testSentence, output);
   for (int8_t i=0;i<NMEA_STATEMENTS_PER_SENTENCE;i++){
-        printf("output after %i: %s\n",i, output[i]);
+  //      printf("output after %i: %s\n",i, output[i]);
   }
+  printf("%s\r\n%i",output[2], stringToU32e4(output[2]));
+
   return 0;
 }
 
+int32_t stringToU32e4(const char *input){
+	int32_t output = 0;
+	int8_t sign = 1;
+	int8_t e4scale = 4;
+
+	if (*input == '-') sign=-1;
+
+	while (*input && *input != '.'){
+		output = output * 10 + (*input++ - '0');
+	}
+	if (*input == '.'){
+		input++;
+		while (e4scale > 0){
+			e4scale--;
+            if (*input)	output = output * 10 + (*input++ - '0');
+            else output *= 10;
+		}
+	}
+	return sign * output;
+}

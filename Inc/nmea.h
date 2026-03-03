@@ -33,15 +33,18 @@ bool validate_nmea_checksum(const char *sentence);
 uint8_t read_from_hex(const char *input);
 
 
-void dropAnchor(uint16_t time_seconds,float lattitude, float longitude);
+void dropAnchor(uint16_t time_seconds,int32_t lattitude,int32_t longitude);
 
-float getLattitude(void);
-float getLongitude(void);
+int32_t getLattitude(void);
+int32_t getLongitude(void);
+int16_t getDeltaLatt(void);
+int16_t getDeltaLon(void);
 float getTime(void);
 
 
 
 void setGPGSV(bool on);
 float stringToFloat(const char *input);
+int32_t stringToU32e4(const char *input);
 
 #endif //NMEA_H

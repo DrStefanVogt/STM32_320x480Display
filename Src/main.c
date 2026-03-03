@@ -22,7 +22,7 @@ extern uint8_t g_uart_idle;
 extern char uart_data_buffer[UART_DATA_BUFF_SIZE];
 char msg_buff[UART_DATA_BUFF_SIZE] ={'\0'}; //this will be obsolete after nmea_buffer is in
 //extern char nmea_buffer[NMEA_BURST_NO][NMEA_SENTENCE_LENGTH];
-
+bool debug = 0;
 
 
 int main(void){
@@ -47,30 +47,27 @@ int main(void){
 	while (getTime()== 0){
 		init_nmea_buffer(uart_data_buffer);
 		systick_msec_sleep(100);
-		printf("waiting for GNSS...\r\n");
+		 if (debug) printf("waiting for GNSS...\r\n");
 		systick_msec_sleep(100);
 	}//wait for GNRMSentence to arrive
-	{
-		float lat = getLattitude();
-		float lon = getLongitude();
-		dropAnchor((uint16_t)getTime(),lat,lon); //calling getL..() inside the dropAnchor(..) leads to crashes. buzzwords from chatGPT: ARM-ABI, S0/S1
-	}
+		dropAnchor((uint16_t)getTime(), getLattitude(),getLongitude());
 //	debugGrid();
+	uint16_t centerX=160;
+	uint16_t centerY=250;
+	drawCircle(centerX,centerY,150);
 	while(1){
 		digitLCDUpdate(number);
 		systick_msec_sleep(10);
 		number++;
+		if (number%2500 == 0) nextColor();
 		if(g_uart_idle){  //wait for end of NMEA Sentence transmisson, complete loop must be shorter than 1000ms
 			g_uart_idle = 0;
 			init_nmea_buffer(uart_data_buffer);
 			writeWord(getPositionSentence(),300,450);
-//			printf("*******************************************\r\n%s\r\n*******************************************\r\n",getPositionSentence());
-			printf("$GNRMC,%s\r\n",getGNRMCSentence());
-//			printf("$GSGSV,%s\r\n", getGSGSVSentence(0));
-//			printf("$GSGSV,%s\r\n", getGSGSVSentence(1));
-//			printf("$GSGSV,%s\r\n", getGSGSVSentence(2));
-			printf("%i: %f,%f\r\n",(uint16_t)(getTime()-163808.0f),getLattitude(),getLongitude());
-
+			 if (debug) printf("$GNRMC,%s\r\n",getGNRMCSentence());
+			 if (debug) printf("%i: %i,%i\r\n",(uint16_t)(getTime()),getLattitude(),getLongitude());
+			 if (debug) printf("Delta latt: %i,%i\r\n", getDeltaLatt(),getDeltaLon());
+			drawSquare(centerX-(getDeltaLatt()>>2),centerY-(getDeltaLon()>>3),3);
 		}
 
 	}
