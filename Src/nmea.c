@@ -55,6 +55,12 @@ void init_nmea_buffer(char* uart_data){
 		/*SEE IF SENTENCE HAS STARTED*/
 		if(uart_data[uart_i] == '\0') break; //finish loop when end of uart_buffer is reached, TODO: check if NMEA may contain '\0'
 		if(uart_data[uart_i] == '$'){
+			if(!validate_nmea_checksum(&uart_data[uart_i]))
+			{
+				while(uart_data[uart_i++] !='$' || uart_data[uart_i] != '\0'){
+				}
+				continue;
+			}
 			pos++; //move cursor
 			sent_start = 1; //start command given
 		}
@@ -69,7 +75,7 @@ void init_nmea_buffer(char* uart_data){
 		pos += 4; //skip 4 elements with cursor. cursor should be on first real data byte now
 
 		char* writeTo_ptr = NULL; //pointer to right storage position, initialized to NULL
-		if(!validate_nmea_checksum(&uart_data[uart_i])) continue;
+		volatile bool validated = validate_nmea_checksum(&uart_data[uart_i]);
 		switch(nmea_this){
 			case CMD4('N','G','L','L'):
 //				GNGLL = GNSS position
@@ -81,9 +87,13 @@ void init_nmea_buffer(char* uart_data){
 				break;
 			case CMD4('P','G','S','V'):
 //				Data about Satelites in view
-				if(n.GPGSV_on)writeTo_ptr = n.GPGSV[gpgsv_i++];
-				if(gpgsv_i > NMEA_GPGSV_NUM) gpgsv_i = 0;
-				break;
+				if(!n.GPGSV_on)break;
+				else {
+					if(gpgsv_i >= NMEA_GPGSV_NUM) gpgsv_i = 0;
+					writeTo_ptr = n.GPGSV[gpgsv_i];
+					gpgsv_i++;
+					break;
+				}
 			case CMD4('P','G','S','A'):
 				writeTo_ptr = NULL; //Not yet used
 				break;
@@ -163,26 +173,40 @@ int16_t getDeltaLon(void){
 
 bool validate_nmea_checksum(const char *sentence)
 {
+	//this function gives 1 if the received checksum after * matches expectations from received sentence
     uint8_t checksum = 0;
     uint8_t checksum_received=0;
-    // Skip leading '$' if present
+    // Skip leading '$' if present, if no '$' the sentence is considered corrupt
     if (*sentence == '$') {
         sentence++;
     }
-    if (debug) printf("%s",sentence);
+    else return 0;
+
     // XOR until '*' or end of string
-    while (*sentence && *sentence != '*') {
-        checksum ^= (uint8_t)(*sentence);
-        sentence++;
+    for(uint8_t i=0;i<NMEA_SENTENCE_LENGTH;i++){
+    	if (*sentence == '*') break;
+    	checksum ^=(uint8_t)(*sentence);
+    	sentence++;
+    	if (*sentence == '\r' || *sentence =='\n' || *sentence == '\0') return 0;
     }
+
+
+    //if checksum mark '*' is present go on else invalid senentece
     if(*sentence == '*') sentence++;
-    checksum_received = read_from_hex(sentence);
+    else return 0;
+
+    if (isxdigit(sentence[0]) && isxdigit(sentence[1])) {
+    	checksum_received = read_from_hex(sentence);
+        }
+    else return 0;
+
     if (checksum_received == checksum) return 1;
     else{
     	 if (debug) printf("Checksum Error. %x, %x\r\n",checksum,checksum_received);
     	 if (debug) printf("This sentence was: %s", sentence);
         return 0;
     }
+    return 0; //something went very wrong if this executes
 }
 void setGPGSV(bool on){
 	n.GPGSV_on = on;

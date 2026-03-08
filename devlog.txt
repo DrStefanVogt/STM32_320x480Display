@@ -53,3 +53,5 @@ DMA2 Stream7 ch4 USART1_TX
 
 18022026 - zu viele Sateliten bei test draußen, muss buffer vergrößern
 			- merklicher lag (~200ms) bei vielen Sateliten, liegt an der Grafik
+			
+04032026 Jage abstürze bei dauertest über nacht. stack usage mit GPT skript gemonitort (skript getestet scheint zu gehen) Ich vermute jetzt einen buffer overflow da ich mit NMEA_GPGSV_NUM 3 schon nach wenigen minuten undefiniertes verhalten bekomme. Debug printf wird zu laufzeit aktiviert, was nicht passieren darf, stack usage geht von 508 auf 620...irgendwo da geht was daneben.

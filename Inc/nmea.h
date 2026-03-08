@@ -9,7 +9,7 @@
 #define NMEA_BURST_NO 25 //maximum number of NMEA sentences in one burst of sentences
 #define NMEA_SENTENCE_LENGTH 90 //maximum number of chars in one NMEA sentence, https://en.wikipedia.org/wiki/NMEA_0183 says max 83 Chars
 #define NMEA_ID_LENGTH 6 //NMEA idenification i.e. length($GPGSV)
-#define NMEA_GPGSV_NUM 10 //maximum number of GPGSV sentences
+#define NMEA_GPGSV_NUM 3 //maximum number of GPGSV sentences
 #define NMEA_STATEMENTS_PER_SENTENCE 15 //maxium statements of NMEA sentence ($GXXXX,statement1,statement2,statement3...)
 #define NMEA_CHARACTERS_PER_STATEMENT 11 //maximum characters per NMEA statement ($GXXXX,statement1,statement2,statement3...)
 

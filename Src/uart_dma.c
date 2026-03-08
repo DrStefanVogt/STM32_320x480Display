@@ -45,7 +45,7 @@
 static uint16_t compute_uart_bd(uint32_t periph_clk, uint32_t baudrate);
 static void uart_set_baudrate(uint32_t periph_clk, uint32_t baudrate);
 
-char uart_data_buffer[UART_DATA_BUFF_SIZE];
+volatile char uart_data_buffer[UART_DATA_BUFF_SIZE];
 
 uint8_t g_rx_cmplt;
 uint8_t g_tx_cmplt;
@@ -259,7 +259,6 @@ void USART1_IRQHandler(void)
 	if(USART1->SR & SR_TC){
 		volatile uint32_t tmp;
 		g_uart_cmplt  = 1;
-		//printf("TC interrupt\r\n");
 		/*Clear TC interrupt flag*/
 		USART1->SR &=~SR_TC; //is allowed see RM0383 page 545
 
@@ -297,6 +296,12 @@ void USART1_IRQHandler(void)
 
 	}
 
+}
+
+void debugFillUartBuffer(void){
+	for(uint16_t i=0; i<UART_DATA_BUFF_SIZE;i++){
+		uart_data_buffer[i]='\0';
+	}
 }
 
 

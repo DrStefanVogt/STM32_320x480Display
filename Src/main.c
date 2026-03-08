@@ -23,10 +23,52 @@ extern char uart_data_buffer[UART_DATA_BUFF_SIZE];
 char msg_buff[UART_DATA_BUFF_SIZE] ={'\0'}; //this will be obsolete after nmea_buffer is in
 //extern char nmea_buffer[NMEA_BURST_NO][NMEA_SENTENCE_LENGTH];
 bool debug = 0;
+#define STACK_SIZE 0x400
 
+
+extern uint32_t _estack;
+
+void someFunction(void){
+	uint32_t size = 100;
+	volatile uint32_t variables[size];
+	for (uint32_t i=0;i<size;i++){variables[i]=i;}
+	printf("new: %i",variables[2]);
+	return;
+}
+
+
+void stack_fill(void)
+{
+    uint32_t *stack_start = (uint32_t*)((uint8_t*)&_estack - STACK_SIZE);
+    uint32_t *p = stack_start;
+
+    while (p < &_estack)
+    {
+        *p++ = 0xA5A5A5A5;
+    }
+}
+
+size_t stack_usage(void)
+{
+    uint32_t *stack_start = (uint32_t*)((uint8_t*)&_estack - STACK_SIZE);
+    uint32_t *p = stack_start;
+
+    while (*p == 0xA5A5A5A5)
+    {
+        p++;
+    }
+
+    return (uint8_t*)&_estack - (uint8_t*)p;
+}
+
+volatile size_t usage;
 
 int main(void){
+	stack_fill();
+	debugFillUartBuffer();
 	SCB->CPACR |= (0xF << 20);  // Enable CP10 + CP11 for float
+	usage  = stack_usage();
+	printf("stack_usage: %i",usage);
 	four_inch_init();
 	testScreen_16();
 	debugSineCosine();
@@ -56,17 +98,25 @@ int main(void){
 	uint16_t centerY=250;
 	drawCircle(centerX,centerY,150);
 	while(1){
+//		someFunction();
 		digitLCDUpdate(number);
 		systick_msec_sleep(10);
+		usage  = stack_usage();
 		number++;
 		if (number%2500 == 0) nextColor();
 		if(g_uart_idle){  //wait for end of NMEA Sentence transmisson, complete loop must be shorter than 1000ms
 			g_uart_idle = 0;
 			init_nmea_buffer(uart_data_buffer);
 			writeWord(getPositionSentence(),300,450);
-			 if (debug) printf("$GNRMC,%s\r\n",getGNRMCSentence());
-			 if (debug) printf("%i: %i,%i\r\n",(uint16_t)(getTime()),getLattitude(),getLongitude());
-			 if (debug) printf("Delta latt: %i,%i\r\n", getDeltaLatt(),getDeltaLon());
+			writeWord(getGSGSVSentence(0),300,440);
+			drawUint16((uint16_t)usage,300,430,4);
+			 if (debug){
+				 printf("stack_usage: %i\r\n",usage);
+				 printf("$GNRMC,%s\r\n",getGNRMCSentence());
+				 printf("%i: %i,%i\r\n",(uint16_t)(getTime()),getLattitude(),getLongitude());
+				 printf("Delta latt: %i,%i\r\n", getDeltaLatt(),getDeltaLon());
+				 for(uint8_t i=0;i<=NMEA_GPGSV_NUM;i++)printf("GPGSV %i: %s\r\n",i, getGSGSVSentence(i));
+			 }
 			drawSquare(centerX-(getDeltaLatt()>>2),centerY-(getDeltaLon()>>3),3);
 		}
 
