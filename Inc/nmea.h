@@ -40,6 +40,10 @@ int32_t getLongitude(void);
 int16_t getDeltaLatt(void);
 int16_t getDeltaLon(void);
 float getTime(void);
+float getDeltaMeter(void);
+
+int16_t getDeltaLonCm(void);
+int16_t getDeltaLattCm(void);
 
 
 

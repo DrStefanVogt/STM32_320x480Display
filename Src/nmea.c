@@ -26,6 +26,7 @@ typedef struct {
 
 static nmea_buffer n;
 static anchor a;
+static uint8_t latt_anchor; //lattitude for meter conversion of longitude
 
 static bool debug =0;
 static const int8_t hex_lut[256] = {
@@ -38,6 +39,12 @@ static const int8_t hex_lut[256] = {
 static inline uint8_t min_u8(uint8_t a, uint8_t b) {
     return (a < b) ? a : b;
 };
+// cos_sqare_table: 0..255 corresponds to cos(x)²*255
+static const uint8_t cos_sq_table[] = {255, 254, 254, 254, 253, 253, 252, 251, 250, 248, 247, 245, 243, 242, 240, 237, 235, 233, 230, 227, 225, 222, 219, 216, 212, 209, 205, 202, 198, 195, 191, 187, 183, 179, 175, 171, 166, 162, 158, 154, 149, 145, 140, 136, 131, 127, 123, 118, 114, 109, 105, 100, 96, 92, 88, 83, 79, 75, 71, 67, 63, 59, 56, 52, 49, 45, 42, 38, 35, 32, 29, 27, 24, 21, 19, 17, 14, 12, 11, 9, 7, 6, 4, 3, 2, 1, 1, 0, 0, 0};
+static const uint8_t cos_table[] = {255, 254, 254, 254, 254, 254, 253, 253, 252, 251, 251, 250, 249, 248, 247, 246, 245, 243, 242, 241, 239, 238, 236, 234, 232, 231, 229, 227, 225, 223, 220, 218, 216, 213, 211, 208, 206, 203, 200, 198, 195, 192, 189, 186, 183, 180, 177, 173, 170, 167, 163, 160, 156, 153, 149, 146, 142, 138, 135, 131, 127, 123, 119, 115, 111, 107, 103, 99, 95, 91, 87, 83, 78, 74, 70, 65, 61, 57, 53, 48, 44, 39, 35, 31, 26, 22, 17, 13, 8, 4, };
+static const float coordToMeters = 0.01852f;
+static const float coordToMeters_sq = 0.0003429904f; //(1852 m/minute/100000)²
+
 
 void init_nmea_buffer(char* uart_data){
 	//this funciton sorts data of uart_data into the nmea_buffer struct.
@@ -128,6 +135,7 @@ void dropAnchor(uint16_t time_seconds,int32_t lattitude,int32_t longitude){
 	a.time_seconds = time_seconds;
 	a.lattitude = lattitude;
 	a.longitude = longitude;
+	latt_anchor = (uint8_t)(lattitude/1000000);
 	return;
 }
 
@@ -169,6 +177,25 @@ int16_t getDeltaLatt(void){
 
 int16_t getDeltaLon(void){
 	return getLongitude() - a.longitude;
+}
+
+int16_t getDeltaLattCm(void){
+	float delta = (getLattitude() - a.lattitude)*coordToMeters*100;
+	return (int16_t)delta;
+}
+
+int16_t getDeltaLonCm(void){
+	float delta = (getLongitude() - a.longitude)*coordToMeters*100*cos_table[latt_anchor]/255;
+	return (int16_t)delta;
+}
+
+float getDeltaMeter(void){
+	float deltaMeter;
+	int16_t lat = getDeltaLatt();
+	int16_t lon = getDeltaLon();
+	deltaMeter = sqrtf((lat*lat*coordToMeters_sq/255)+(lon*lon*coordToMeters_sq*cos_sq_table[latt_anchor]/255));
+	printf("%i\r\n",latt_anchor);
+	return deltaMeter;
 }
 
 bool validate_nmea_checksum(const char *sentence)

@@ -22,7 +22,7 @@ extern uint8_t g_uart_idle;
 extern char uart_data_buffer[UART_DATA_BUFF_SIZE];
 char msg_buff[UART_DATA_BUFF_SIZE] ={'\0'}; //this will be obsolete after nmea_buffer is in
 //extern char nmea_buffer[NMEA_BURST_NO][NMEA_SENTENCE_LENGTH];
-bool debug = 0;
+bool debug = 1;
 #define STACK_SIZE 0x400
 
 
@@ -96,6 +96,7 @@ int main(void){
 //	debugGrid();
 	uint16_t centerX=160;
 	uint16_t centerY=250;
+	uint8_t scale = 1;
 	drawCircle(centerX,centerY,150);
 	while(1){
 //		someFunction();
@@ -109,15 +110,17 @@ int main(void){
 			init_nmea_buffer(uart_data_buffer);
 			writeWord(getPositionSentence(),300,450);
 			writeWord(getGSGSVSentence(0),300,440);
-			drawUint16((uint16_t)usage,300,430,4);
+			drawUint16((uint16_t)usage,300,430,4); //TODO: die zahl wird von hinten nach vorne gezeichnet - fix
 			 if (debug){
 				 printf("stack_usage: %i\r\n",usage);
 				 printf("$GNRMC,%s\r\n",getGNRMCSentence());
 				 printf("%i: %i,%i\r\n",(uint16_t)(getTime()),getLattitude(),getLongitude());
-				 printf("Delta latt: %i,%i\r\n", getDeltaLatt(),getDeltaLon());
+				 printf("Delta latt/lon(min/100000): %i,%i\r\n", getDeltaLatt(),getDeltaLon());
 				 for(uint8_t i=0;i<=NMEA_GPGSV_NUM;i++)printf("GPGSV %i: %s\r\n",i, getGSGSVSentence(i));
+				 printf("r (m): %f,lat(cm): %i, lon(cm): %i\r\n",getDeltaMeter(),getDeltaLattCm(),getDeltaLonCm());
 			 }
-			drawSquare(centerX-(getDeltaLatt()>>2),centerY-(getDeltaLon()>>3),3);
+			drawSquare(centerX-(getDeltaLattCm()*scale),centerY-(getDeltaLonCm()*scale),3);
+
 		}
 
 	}
