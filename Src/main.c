@@ -96,8 +96,10 @@ int main(void){
 //	debugGrid();
 	uint16_t centerX=160;
 	uint16_t centerY=250;
-	uint8_t scale = 1;
-	drawCircle(centerX,centerY,150);
+	uint8_t scale = 4; //in power of two 1=>2 2=>4 3=>8 4=>16
+	uint8_t circle_m = 20;
+	graphicsInit(COLOR16_RED, COLOR16_BLACK, 3);
+	drawCircle(centerX,centerY,20*100>>scale);
 	while(1){
 //		someFunction();
 		digitLCDUpdate(number);
@@ -116,10 +118,10 @@ int main(void){
 				 printf("$GNRMC,%s\r\n",getGNRMCSentence());
 				 printf("%i: %i,%i\r\n",(uint16_t)(getTime()),getLattitude(),getLongitude());
 				 printf("Delta latt/lon(min/100000): %i,%i\r\n", getDeltaLatt(),getDeltaLon());
-				 for(uint8_t i=0;i<=NMEA_GPGSV_NUM;i++)printf("GPGSV %i: %s\r\n",i, getGSGSVSentence(i));
+				 //for(uint8_t i=0;i<=NMEA_GPGSV_NUM;i++)printf("GPGSV %i: %s\r\n",i, getGSGSVSentence(i));
 				 printf("r (m): %f,lat(cm): %i, lon(cm): %i\r\n",getDeltaMeter(),getDeltaLattCm(),getDeltaLonCm());
 			 }
-			drawSquare(centerX-(getDeltaLattCm()*scale),centerY-(getDeltaLonCm()*scale),3);
+			drawSquare(centerX-(getDeltaLattCm()>>scale),centerY-(getDeltaLonCm()>>scale),3);
 
 		}
 

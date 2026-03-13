@@ -11,10 +11,10 @@ from PyQt5.QtWidgets import QApplication
 import math
 
 
-inputGPS_N =  5429.4119
-input2GPS_N = 5429.4078
-inputGPS_E =  00943.9087
-input2GPS_E = 00943.9116
+inputGPS_N =  5429.4079
+input2GPS_N = 5429.4089
+inputGPS_E =  00943.9136
+input2GPS_E = 00943.9145
 
 def nmea_to_decimal(value, direction):
     """

@@ -90,7 +90,6 @@ static const Glyph font[] = {
 		[','] = { .rows ={0x00000000, 0x00003070} },
 };
 
-// sine_table: 0..255 corresponds to sin(x)*255
 static const uint8_t sine_table[] = {0,4,8,13,17,22,26,31,35,39,44,48,53,57,61,66,70,74,78,83,87,91,95,99,103,107,111,115,119,123,127,131,135,138,142,146,149,153,156,160,163,167,170,173,177,180,183,186,189,192,195,198,200,203,206,208,211,213,216,218,220,223,225,227,229,231,232,234,236,238,239,241,242,243,245,246,247,248,249,250,251,251,252,253,253,254,254,254,254,254,255,};
 static textOptions TEXT_OPT ={1,COLOR16_BLACK,COLOR16_WHITE};
 static graphicsOptions GRAPH_OPT ={COLOR16_BLACK,COLOR16_WHITE};
@@ -257,7 +256,7 @@ void drawSquare(uint16_t x, uint16_t y, uint16_t a){
 }
 
 void drawCircle(uint16_t x, uint16_t y, uint16_t d){
-	for (uint16_t deg=0;deg <= 360; deg+=5){
+	for (uint16_t deg=0;deg <= 360; deg+=1){
 		rectangle(x+sin_deg(deg)*d/255,y+cos_deg(deg)*d/255,GRAPH_OPT.thickness,GRAPH_OPT.thickness,GRAPH_OPT.color);
 	}
 	return;
