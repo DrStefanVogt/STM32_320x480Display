@@ -11,7 +11,7 @@
 #define NMEA_ID_LENGTH 6 //NMEA idenification i.e. length($GPGSV)
 #define NMEA_GPGSV_NUM 3 //maximum number of GPGSV sentences
 #define NMEA_STATEMENTS_PER_SENTENCE 15 //maxium statements of NMEA sentence ($GXXXX,statement1,statement2,statement3...)
-#define NMEA_CHARACTERS_PER_STATEMENT 11 //maximum characters per NMEA statement ($GXXXX,statement1,statement2,statement3...)
+#define NMEA_CHARACTERS_PER_STATEMENT 15 //maximum characters per NMEA statement ($GXXXX,statement1,statement2,statement3...)
 
 
 #define CMD4(a,b,c,d) ((uint32_t)(a)<<24 | (uint32_t)(b)<<16 | (uint32_t)(c)<<8 | (uint32_t)(d))
@@ -44,6 +44,8 @@ float getDeltaMeter(void);
 
 int16_t getDeltaLonCm(void);
 int16_t getDeltaLattCm(void);
+
+bool getAntennaStatus(void);
 
 
 

@@ -5,8 +5,9 @@
  *      Author: stevo
  */
 #include "nmea.h"
+#include <ctype.h>
 
-//char nmea_buffer[NMEA_BURST_NO][NMEA_SENTENCE_LENGTH];
+static const debug = 0;
 
 typedef struct {
 	char GPS_POS[NMEA_SENTENCE_LENGTH];
@@ -14,8 +15,10 @@ typedef struct {
 	char GNRMC[NMEA_SENTENCE_LENGTH];
 	char GNRMC_split[NMEA_STATEMENTS_PER_SENTENCE][NMEA_CHARACTERS_PER_STATEMENT];
 	char GPGSV[NMEA_GPGSV_NUM][NMEA_SENTENCE_LENGTH];
+	char GPTXT[NMEA_SENTENCE_LENGTH];
 	bool GPGSV_on;
 	bool GNRMC_on;
+	bool antenna_connect;
 } nmea_buffer;
 
 typedef struct {
@@ -28,7 +31,6 @@ static nmea_buffer n;
 static anchor a;
 static uint8_t latt_anchor; //lattitude for meter conversion of longitude
 
-static bool debug =0;
 static const int8_t hex_lut[256] = {
     ['0']=0,['1']=1,['2']=2,['3']=3,['4']=4,
     ['5']=5,['6']=6,['7']=7,['8']=8,['9']=9,
@@ -107,6 +109,9 @@ void init_nmea_buffer(char* uart_data){
 			case CMD4('N','R','M','C'):
 				writeTo_ptr  = n.GNRMC;
 				n.GNRMC_on = 1;
+				break;
+			case CMD4('P','T','X','T'):
+				writeTo_ptr  = n.GPTXT;
 				break;
 		}
 		//now I know sentence type, write all data until end of line '\r\n' to right position. End string with '\0'
@@ -189,6 +194,17 @@ int16_t getDeltaLonCm(void){
 	return (int16_t)delta;
 }
 
+bool getAntennaStatus(void){
+	char output[NMEA_STATEMENTS_PER_SENTENCE][NMEA_CHARACTERS_PER_STATEMENT];
+	splitNMEASentence(n.GPTXT,output);
+	printf("%s",n.GPTXT);
+	for (uint8_t i=0;i<NMEA_STATEMENTS_PER_SENTENCE;i++){
+		if(output[i][0]=='A' && output[i][1]=='N' && output[i][2]=='T'&& output[i][9]=='=' && output[i][11]=='P') return 0;
+		if(output[i][0]=='A' && output[i][1]=='N' && output[i][2]=='T'&& output[i][9]=='=' && output[i][11]=='K ') return 1;
+	}
+	return 0;
+}
+
 float getDeltaMeter(void){
 	float deltaMeter;
 	int16_t lat = getDeltaLatt();
@@ -251,22 +267,27 @@ uint8_t read_from_hex(const char *input){
 }
 
 void splitNMEASentence(const char *input, char output[NMEA_STATEMENTS_PER_SENTENCE][NMEA_CHARACTERS_PER_STATEMENT]){
-	uint8_t k=0;
-	uint8_t i=0;
-	uint8_t j=0;
+	uint8_t k=0;						 //number of statements
+	uint8_t i=0; 						//input sentence counter
+	uint8_t j=0; 						//char in this statement
 	while(input[i]!= '\0' && i< NMEA_SENTENCE_LENGTH){
-	        output[k][j] = input[i];
-	        if(input[i] == ','){
-	            output[k][j] ='\0';
+		//loop through input
+
+	        output[k][j] = input[i]; 	//write to stament k
+
+	        if(input[i] == ','){ 		//go to next statement if ,
+	            output[k][j] ='\0';  	//finalize statement
 	            k++;
-	            j=0;
+	            j=0;					//switch to first char in next statement
 	        }
-	        if(input[i] != ','){
+
+	        if(input[i] != ','){ 		//next letter in current output
 	            j++;
 	        }
-	        i++;
+	        i++;						//next letter in input
 	    }
-	    for (;k<NMEA_STATEMENTS_PER_SENTENCE;k++) output[k][0]='\0';
+	 k++;
+	 for (;k<NMEA_STATEMENTS_PER_SENTENCE;k++) output[k][0]='\0'; //set all remaining output statements to \0
 	}
 
 float stringToFloat(const char *input){

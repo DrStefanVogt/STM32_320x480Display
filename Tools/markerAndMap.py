@@ -9,12 +9,16 @@ import folium
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtWidgets import QApplication
 import math
+#
+#GNRMC,202947.000,A,5429.4067,N,00943.9071,E,0.00,60.67,130326,,,A,V
+#6339: 54294067,9439071
+#r (m): 6.054996,lat(cm): -92, lon(cm): -595
 
 
-inputGPS_N =  5429.4079
-input2GPS_N = 5429.4089
-inputGPS_E =  00943.9136
-input2GPS_E = 00943.9145
+inputGPS_N =  5433.4079
+input2GPS_N = 5429.4067
+inputGPS_E =  00955.4136
+input2GPS_E = 00943.9071
 
 def nmea_to_decimal(value, direction):
     """

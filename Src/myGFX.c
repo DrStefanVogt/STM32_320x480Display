@@ -127,7 +127,7 @@ void digitLCDInit(uint16_t x, uint16_t y, uint8_t xOffset, uint8_t height,uint8_
 	//fill background
 	rectangle(x-LCD_OPT.frame,y-LCD_OPT.frame,digitNo*xOffset+LCD_OPT.frame,height+2*LCD_OPT.frame, LCD_OPT.bgColor);
 	for (uint8_t i=0;i < digitNo;i++){
-		drawDigit_LCD(LCD_OPT.digits[i],x+(i*LCD_OPT.xOffset),y);
+		drawDigit_LCD(LCD_OPT.digits[LCD_OPT.digitNo-i],x+(i*LCD_OPT.xOffset),y);
 
 	}
 
@@ -137,8 +137,8 @@ void digitLCDUpdate(uint16_t input){
 	convertUint16ToChar(input,LCD_OPT.digits,LCD_OPT.digitNo);
 
 	for(uint8_t i=0;i< LCD_OPT.digitNo;i++){
-		changeDigit_LCD(LCD_OPT.x+i*LCD_OPT.xOffset,LCD_OPT.y,i);
-		drawDigit_LCD(LCD_OPT.digits[i],LCD_OPT.x+i*LCD_OPT.xOffset,LCD_OPT.y);
+		changeDigit_LCD(LCD_OPT.x+i*LCD_OPT.xOffset,LCD_OPT.y,LCD_OPT.digitNo-i);
+		drawDigit_LCD(LCD_OPT.digits[LCD_OPT.digitNo-i],LCD_OPT.x+i*LCD_OPT.xOffset,LCD_OPT.y);
 	}
 
 }
@@ -205,7 +205,7 @@ void writeWord(const char *word, uint16_t x, uint16_t y){
 		for(uint8_t i=0 ; word[i] !='\0'; i++){
 			switch(word[i-1]){
 			case('I'):
-				cursor += (spacing-8);
+				cursor += (spacing-3);
 				break;
 			case('L'):
 					cursor += (spacing-2);
@@ -276,16 +276,16 @@ void drawLine(uint16_t x, uint16_t y, uint16_t length, uint16_t phi){
 	}
 }
 
-void drawUint16(uint16_t input, uint16_t x, uint16_t y, uint8_t max)
+void drawUint16(uint16_t input, uint16_t x, uint16_t y, uint8_t digits)
 	{
 	    char buffer[MAXDIGIT]={'0','0','0','0','0'};   // max "65535" + '\0'
-	    convertUint16ToChar(input, buffer,max);
+	    convertUint16ToChar(input, buffer,digits);
 	    writeWord(buffer, x, y);
 	}
 
-void convertUint16ToChar(uint16_t input, char* buffer, uint8_t max){
+void convertUint16ToChar(uint16_t input, char* buffer, uint8_t digits){
 
-    for(uint8_t i = 0;i<=max;i++) {
+    for(int8_t i = digits-1;i>0;i--) {
         buffer[i] = '0' + (input % 10);
         input /= 10;
     }
