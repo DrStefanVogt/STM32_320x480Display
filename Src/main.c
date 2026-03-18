@@ -74,7 +74,6 @@ int main(void){
 	printf("stack_usage: %i",usage);
 	four_inch_init();
 	testScreen_16();
-	systick_msec_delay(10000);
 	debugSineCosine();
 	systick_msec_delay(1000);
 	rectangle_empty(0,0,230,230,10,COLOR16_BLUE);
@@ -90,20 +89,22 @@ int main(void){
 	digitLCDInit(25,40,40,50,19,5);
 	textInit(0,COLOR16_BLUE,COLOR16_WHITE);
 	setGPGSV(1);
-/*	while (getTime()== 0){
+	uint8_t counter = 0;
+	while (getTime()== 0 && counter < 10){
 		init_nmea_buffer(uart_data_buffer);
 		systick_msec_sleep(100);
 		 if (debug) printf("waiting for GNSS...\r\n");
 		systick_msec_sleep(100);
+		counter++;
 	}//wait for GNRMSentence to arrive
-		dropAnchor((uint16_t)getTime(), getLattitude(),getLongitude());*/
-	debugGrid();
+		dropAnchor((uint16_t)getTime(), getLattitude(),getLongitude());
+	//debugGrid();
 	uint16_t centerX=160;
 	uint16_t centerY=250;
 	uint8_t scale = 4; //in power of two 1=>2 2=>4 3=>8 4=>16
 	uint8_t circle_m = 20;
 	graphicsInit(COLOR16_RED, COLOR16_BLACK, 3);
-	drawCircle(centerX,centerY,20*100>>scale);
+	drawCircle(centerX,centerY,circle_m*100>>scale);
 	while(1){
 //		someFunction();
 		digitLCDUpdate(number);

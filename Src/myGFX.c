@@ -285,7 +285,7 @@ void drawUint16(uint16_t input, uint16_t x, uint16_t y, uint8_t digits)
 
 void convertUint16ToChar(uint16_t input, char* buffer, uint8_t digits){
 
-    for(int8_t i = digits-1;i>0;i--) {
+    for(int8_t i = digits;i>0;i--) {
         buffer[i] = '0' + (input % 10);
         input /= 10;
     }
