@@ -15,6 +15,9 @@
 #define A0_BS0			(1U << 0) /*Bit Set Pin 0*/
 #define A0_BR0			(1U << 16)/*Bit Reset Pin 0*/
 
+#define A1_BS1			(1U << 1) /*Bit Set Pin 0*/
+#define A1_BR1			(1U << 17)/*Bit Reset Pin 0*/
+
 #define BTN_PIN			(1U<<13)
 
 void gpio_test(void)
@@ -49,6 +52,14 @@ void A0_init(void){
 
 	GPIOA->MODER |=(1U << 0);
 	GPIOA->MODER &=~(1U<< 1);
+}
+
+void A1_init(void){
+	/*Enable clock access to GPIOA*/
+	RCC->AHB1ENR |= GPIOAEN;
+	/*PA1*/
+	GPIOA->MODER |=(1U << 2);
+	GPIOA->MODER &=~(1U<< 3);
 }
 
 void button_init(void)
@@ -98,6 +109,11 @@ void A0_on(void){
 	GPIOA->BSRR |= A0_BS0;
 }
 
-void A0_off(void){
-	GPIOA->BSRR |= A0_BR0;
+void A1_on(void){
+	GPIOA->BSRR |= A1_BS1;
+
+}
+
+void A1_off(void){
+	GPIOA->BSRR |= A1_BR1;
 }

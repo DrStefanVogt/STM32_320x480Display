@@ -7,17 +7,19 @@
 #include "nmea.h"
 #include <ctype.h>
 
-static const debug = 0;
+static const debug = 1;
 
 typedef struct {
 	char GPS_POS[NMEA_SENTENCE_LENGTH];
 	char GNSS_POS[NMEA_SENTENCE_LENGTH];
 	char GNRMC[NMEA_SENTENCE_LENGTH];
-	char GNRMC_split[NMEA_STATEMENTS_PER_SENTENCE][NMEA_CHARACTERS_PER_STATEMENT];
+	char GPRMC[NMEA_SENTENCE_LENGTH];
+	char GxRMC_split[NMEA_STATEMENTS_PER_SENTENCE][NMEA_CHARACTERS_PER_STATEMENT];
 	char GPGSV[NMEA_GPGSV_NUM][NMEA_SENTENCE_LENGTH];
 	char GPTXT[NMEA_SENTENCE_LENGTH];
 	bool GPGSV_on;
 	bool GNRMC_on;
+	bool GPRMC_on;
 	bool antenna_connect;
 } nmea_buffer;
 
@@ -44,8 +46,6 @@ static inline uint8_t min_u8(uint8_t a, uint8_t b) {
 // cos_sqare_table: 0..255 corresponds to cos(x)²*255
 static const uint8_t cos_sq_table[] = {255, 254, 254, 254, 253, 253, 252, 251, 250, 248, 247, 245, 243, 242, 240, 237, 235, 233, 230, 227, 225, 222, 219, 216, 212, 209, 205, 202, 198, 195, 191, 187, 183, 179, 175, 171, 166, 162, 158, 154, 149, 145, 140, 136, 131, 127, 123, 118, 114, 109, 105, 100, 96, 92, 88, 83, 79, 75, 71, 67, 63, 59, 56, 52, 49, 45, 42, 38, 35, 32, 29, 27, 24, 21, 19, 17, 14, 12, 11, 9, 7, 6, 4, 3, 2, 1, 1, 0, 0, 0};
 static const uint8_t cos_table[] = {255, 254, 254, 254, 254, 254, 253, 253, 252, 251, 251, 250, 249, 248, 247, 246, 245, 243, 242, 241, 239, 238, 236, 234, 232, 231, 229, 227, 225, 223, 220, 218, 216, 213, 211, 208, 206, 203, 200, 198, 195, 192, 189, 186, 183, 180, 177, 173, 170, 167, 163, 160, 156, 153, 149, 146, 142, 138, 135, 131, 127, 123, 119, 115, 111, 107, 103, 99, 95, 91, 87, 83, 78, 74, 70, 65, 61, 57, 53, 48, 44, 39, 35, 31, 26, 22, 17, 13, 8, 4, };
-static const float coordToMeters = 0.1852f;
-static const float coordToMeters_sq = 0.03429904f; //(1852 m/minute/100000)²
 
 
 void init_nmea_buffer(char* uart_data){
@@ -55,6 +55,7 @@ void init_nmea_buffer(char* uart_data){
 	n.GNSS_POS[0]= '\0';
 	n.GPS_POS[0]= '\0';
 	n.GNRMC_on = 0;
+	n.GPRMC_on = 0;
 	//going through the uart_data which is fed NMEA sentences by DMA, find valid sentences at collect them in struct nmea_buffer
 	uint16_t uart_i = 0;
 	uint8_t gpgsv_i = 0;
@@ -107,9 +108,19 @@ void init_nmea_buffer(char* uart_data){
 				writeTo_ptr = NULL; //Not yet used
 				break;
 			case CMD4('N','R','M','C'):
+				printf("detected GNRMC \r\n");
 				writeTo_ptr  = n.GNRMC;
 				n.GNRMC_on = 1;
+				printf("nmea_this: %i\r\n", nmea_this);
 				break;
+
+			 case CMD4('P','R','M','C'):
+				printf("detected GPRMC \r\n");
+				writeTo_ptr  = n.GPRMC;
+				n.GPRMC_on = 1;
+				printf("nmea_this: %i\r\n", nmea_this);
+				break;
+
 			case CMD4('P','T','X','T'):
 				writeTo_ptr  = n.GPTXT;
 				break;
@@ -133,7 +144,8 @@ void init_nmea_buffer(char* uart_data){
 
 		}
 	}
-	if(n.GNRMC_on) splitNMEASentence(n.GNRMC,n.GNRMC_split); //since GNRMXC is the most important sentence it is always split and saved when it comes. Could by directly saved to bits for optimization, but not now.
+	if(n.GPRMC_on) splitNMEASentence(n.GPRMC,n.GxRMC_split); //since GPRMXC is the most important sentence it is always split and saved when it's available
+	if(n.GNRMC_on) splitNMEASentence(n.GNRMC,n.GxRMC_split); //since GNRMXC is the most important sentence it is always split and saved when it comes. Could by directly saved to bits for optimization, but not now.
 }
 
 void dropAnchor(uint16_t time_seconds,int32_t lattitude,int32_t longitude){
@@ -163,16 +175,17 @@ const char* getGSGSVSentence(uint8_t num){
 }
 
 int32_t getLattitude(void){
-	int32_t lattitude = stringToU32e4(n.GNRMC_split[2]);
+	int32_t lattitude = stringToU32e_FixedPoint(n.GxRMC_split[2]);
+	printf("get_latt: here>%s\r\n",n.GxRMC_split[2]);
 	return lattitude;
 }
 
 int32_t getLongitude(void){
-	int32_t lattitude = stringToU32e4(n.GNRMC_split[4]);
+	int32_t lattitude = stringToU32e_FixedPoint(n.GxRMC_split[4]);
 	return lattitude;
 }
 float getTime(void){
-	float time = stringToFloat(n.GNRMC_split[0]);
+	float time = stringToFloat(n.GxRMC_split[0]);
 	return time;
 }
 
@@ -312,10 +325,10 @@ float stringToFloat(const char *input){
 	return sign * output;
 }
 
-int32_t stringToU32e4(const char *input){
+int32_t stringToU32e_FixedPoint(const char *input){
 	int32_t output = 0;
 	int8_t sign = 1;
-	int8_t e4scale = 4;
+	int8_t e_scale = FIXEDPOINT_AFTER_DECIMAL;
 
 	if (*input == '-') sign=-1;
 
@@ -324,11 +337,13 @@ int32_t stringToU32e4(const char *input){
 	}
 	if (*input == '.'){
 		input++;
-		while (e4scale > 0){
-			e4scale--;
+		while (e_scale > 0){
+			e_scale--;
             if (*input)	output = output * 10 + (*input++ - '0');
             else output *= 10;
 		}
 	}
 	return sign * output;
 }
+
+

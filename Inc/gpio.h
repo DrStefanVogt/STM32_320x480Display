@@ -18,8 +18,11 @@ void led_off(void);
 void button_init(void);
 bool get_btn_state(void);
 void A0_init(void);
+void A1_init(void);
 void A0_on(void);
 void A0_off(void);
+void A1_on(void);
+void A1_off(void);
 void gpio_test(void);
 
 #endif /* GPIO_H_ */

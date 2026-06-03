@@ -17,6 +17,11 @@
 #define CMD4(a,b,c,d) ((uint32_t)(a)<<24 | (uint32_t)(b)<<16 | (uint32_t)(c)<<8 | (uint32_t)(d))
 
 
+#define FIXEDPOINT_AFTER_DECIMAL 5 //if changed coordToMeters needs to be changed accordingly
+static const float coordToMeters = 0.01852f; // this is 1852/10^FIXEDPOINT_AFTER_DECIMAL(^ = "power of")
+static const float coordToMeters_sq = coordToMeters*coordToMeters;
+
+
 
 
 extern uint8_t GPGLL;
@@ -51,6 +56,6 @@ bool getAntennaStatus(void);
 
 void setGPGSV(bool on);
 float stringToFloat(const char *input);
-int32_t stringToU32e4(const char *input);
+int32_t stringToU32e_FixedPoint(const char *input);
 
 #endif //NMEA_H

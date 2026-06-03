@@ -31,17 +31,9 @@ char msg_buff[UART_DATA_BUFF_SIZE] ={'\0'}; //this will be obsolete after nmea_b
 
 extern uint32_t _estack;
 
-void someFunction(void){
-	uint32_t size = 100;
-	volatile uint32_t variables[size];
-	for (uint32_t i=0;i<size;i++){variables[i]=i;}
-	printf("new: %i",variables[2]);
-	return;
-}
-
-
 void stack_fill(void)
 {
+	//stack filled with 0xA5... to find stack usage for debugging
     uint32_t *stack_start = (uint32_t*)((uint8_t*)&_estack - STACK_SIZE);
     uint32_t *p = stack_start;
 
@@ -53,6 +45,7 @@ void stack_fill(void)
 
 size_t stack_usage(void)
 {
+	//find stack that has not been overwritten since stack_fill()
     uint32_t *stack_start = (uint32_t*)((uint8_t*)&_estack - STACK_SIZE);
     uint32_t *p = stack_start;
 
@@ -64,9 +57,12 @@ size_t stack_usage(void)
     return (uint8_t*)&_estack - (uint8_t*)p;
 }
 
-volatile size_t usage;
+volatile size_t usage; //variable for debugging stack issues
 
 int main(void){
+
+	A1_on();
+
 	stack_fill();
 	debugFillUartBuffer();
 	SCB->CPACR |= (0xF << 20);  // Enable CP10 + CP11 for float
@@ -83,7 +79,7 @@ int main(void){
 	uart1_rx_tx_init();
 	dma2_stream2_uart_rx_config();
 	uart_init();
-	systick_msec_delay(10);
+	systick_msec_delay(500);
 	uint16_t number = 0;
 	fullScreenColor(COLOR16_WHITE);
 	digitLCDInit(25,40,40,50,19,5);
@@ -105,10 +101,10 @@ int main(void){
 	uint8_t circle_m = 20;
 	graphicsInit(COLOR16_RED, COLOR16_BLACK, 3);
 	drawCircle(centerX,centerY,circle_m*100>>scale);
+
 	while(1){
-//		someFunction();
 		digitLCDUpdate(number);
-		systick_msec_sleep(10);
+
 		usage  = stack_usage();
 		number++;
 		if (number%2500 == 0) nextColor();
@@ -126,7 +122,7 @@ int main(void){
 				 printf("antenna: %i\r\n",getAntennaStatus());
 				 printf("stack_usage: %i\r\n",usage);
 				 printf("$GNRMC,%s\r\n",getGNRMCSentence());
-				 printf("%i: %i,%i\r\n",(uint16_t)(getTime()),getLattitude(),getLongitude());
+				 printf("--->%i: %i,%i\r\n",(uint16_t)(getTime()),getLattitude(),getLongitude());
 				 printf("Delta latt/lon(min/100000): %i,%i\r\n", getDeltaLatt(),getDeltaLon());
 				 //for(uint8_t i=0;i<=NMEA_GPGSV_NUM;i++)printf("GPGSV %i: %s\r\n",i, getGSGSVSentence(i));
 				 printf("r (m): %f,lat(cm): %i, lon(cm): %i\r\n",getDeltaMeter(),getDeltaLattCm(),getDeltaLonCm());
