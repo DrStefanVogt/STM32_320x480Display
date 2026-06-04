@@ -93,8 +93,21 @@ static const Glyph font[] = {
 static const uint8_t sine_table[] = {0,4,8,13,17,22,26,31,35,39,44,48,53,57,61,66,70,74,78,83,87,91,95,99,103,107,111,115,119,123,127,131,135,138,142,146,149,153,156,160,163,167,170,173,177,180,183,186,189,192,195,198,200,203,206,208,211,213,216,218,220,223,225,227,229,231,232,234,236,238,239,241,242,243,245,246,247,248,249,250,251,251,252,253,253,254,254,254,254,254,255,};
 static textOptions TEXT_OPT ={1,COLOR16_BLACK,COLOR16_WHITE};
 static graphicsOptions GRAPH_OPT ={COLOR16_BLACK,COLOR16_WHITE};
-static LCDOptions LCD_OPT ={COLOR16_BLACK,COLOR16_WHITE,0,0,8,70,100,{'8','8','8','8','8'},{'8','8','8','8','8'},5}; //depends on MAXDIGIT!
 
+static LCDOptions LCD_OPT = {
+    .color = COLOR16_BLACK,
+    .bgColor = COLOR16_WHITE,
+    .x = 0,
+    .y = 0,
+    .thickness = 8,
+    .xOffset = 70,
+    .height = 100,
+    .width = 50,
+    .frame = 1,
+    .digits_prev = "88888",
+    .digits = "88888",
+    .digitNo = 5
+};
 static uint16_t colorSpectrum[COLOR_SPECTRUM_NO] = {COLOR16_BLACK, COLOR16_BLUE, COLOR16_RED, COLOR16_LIGHTBLUE,COLOR16_GREEN};
 
 
@@ -104,7 +117,7 @@ void textInit(bool doubleSize, uint16_t color, uint16_t backgroundColor){
 	TEXT_OPT.bgColor = backgroundColor;
 }
 
-void graphicsInit( uint16_t color, uint16_t backgroundColor, uint8_t thickness){
+void graphicsSettings( uint16_t color, uint16_t backgroundColor, uint8_t thickness){
 	//sets all graphics relecant options
 	GRAPH_OPT.color = color;
 	GRAPH_OPT.bgColor = backgroundColor;
@@ -113,7 +126,7 @@ void graphicsInit( uint16_t color, uint16_t backgroundColor, uint8_t thickness){
 }
 
 void digitLCDInit(uint16_t x, uint16_t y, uint8_t xOffset, uint8_t height,uint8_t width, uint8_t digitNo){
-	//initialize LCD display of digitNo numbers on screen, use graphicsInit first to set basic parameters
+	//initialize LCD display of digitNo numbers on screen, use graphicsSettings first to set basic parameters
 	LCD_OPT.color = GRAPH_OPT.color;
 	LCD_OPT.bgColor = GRAPH_OPT.bgColor;
 	LCD_OPT.x =x;
@@ -173,7 +186,6 @@ void rectangle_empty(uint16_t x, uint16_t y, uint16_t width, uint16_t height,uin
 	fillRectangle_oneColor(singleBuffer,x,y,thickness,width);
 	fillRectangle_oneColor(singleBuffer,x+width,y,thickness, width);
 
-
 }
 
 void writeLetter(char letter, uint16_t x, uint16_t y,uint16_t color,uint16_t background){
@@ -193,7 +205,7 @@ void writeLetter(char letter, uint16_t x, uint16_t y,uint16_t color,uint16_t bac
     	}
     }
 	if (TEXT_OPT.doubleSized) fillSquare_scaleup(localBuffer,x,y,letterHeight);
-	else fillRectangle(localBuffer,x,y,letterHeight,letterWidth);
+	else fillRectangle(&localBuffer[0][0],x,y,letterHeight,letterWidth);
 }
 
 void writeWord(const char *word, uint16_t x, uint16_t y){
@@ -381,7 +393,7 @@ uint8_t castCharToByte(char num){
 
 void debugSmilie(void){
 	//just a smilie using circles - see if it looks ok
-		graphicsInit(COLOR16_BLUE,COLOR16_WHITE,5);
+		graphicsSettings(COLOR16_BLUE,COLOR16_WHITE,5);
 		for (uint8_t d=5;d<30;d+=17)	drawCircle(150+10, 100+d/2, d);
 		for (uint8_t d=5;d<30;d+=17)	drawCircle(120-10, 100+d/2, d);
 		drawCircle_part(132, 40, 26,-90 ,90);
@@ -401,7 +413,7 @@ void debugGrid(void){
 	}
 
 void debugSimpleCounter(void){
-	graphicsInit( COLOR16_BLACK,COLOR16_WHITE, 5);
+	graphicsSettings( COLOR16_BLACK,COLOR16_WHITE, 5);
 
 	for(uint8_t n = 0; n<10;n++) {
 		drawDigit_LCD(castInt8ToChar(n),140,100);
@@ -419,12 +431,12 @@ for (uint16_t i=0;i<DISPLAY_X_MAX;i+=1){
 	rectangle(x+i,y+105+((sin_deg(i*2))>>2),3,3,COLOR16_BLUE);
 	rectangle(x+i,y+105+((cos_deg(i*2))>>2),3,3,COLOR16_LIGHTBLUE);
 }
-graphicsInit(COLOR16_RED,COLOR16_WHITE,5);
+graphicsSettings(COLOR16_RED,COLOR16_WHITE,5);
 
 for (uint16_t phi=0;phi<=360;phi+=15){
 		drawLine(x+50,y+195,20,phi);
 	}
-graphicsInit(COLOR16_BLACK,COLOR16_WHITE,5);
+graphicsSettings(COLOR16_BLACK,COLOR16_WHITE,5);
 drawLine(x+178,y+220,46,0);
 drawLine(x+155,y+220,62,270);
 drawCircle_part(155,425,30,-90,90);
@@ -432,7 +444,7 @@ textInit(1, COLOR16_BLACK, COLOR16_WHITE);
 writeWord("STEFANS ANKERALARM",x+300,y+10);
 	}
 
-nextColor(void){
+void nextColor(void){
 	static uint16_t nextColor;
 	if (nextColor < COLOR_SPECTRUM_NO) nextColor++;
 	else nextColor = 0;

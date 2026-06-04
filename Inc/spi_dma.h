@@ -13,7 +13,7 @@
 
 #define NUM_OF_CHANNELS		1
 
-void spi_dma1_init(uint16_t *buffer);
+void spi_dma1_init(volatile uint16_t *buffer);
 void spi3_transmit_DMA(uint32_t size);
 void spi3_dma_setSingleColorStatus(bool on);
 void DMA1_Stream5_IRQHandler(void);

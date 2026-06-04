@@ -257,7 +257,6 @@ void DMA2_Stream2_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
 	if(USART1->SR & SR_TC){
-		volatile uint32_t tmp;
 		g_uart_cmplt  = 1;
 		/*Clear TC interrupt flag*/
 		USART1->SR &=~SR_TC; //is allowed see RM0383 page 545
@@ -272,6 +271,7 @@ void USART1_IRQHandler(void)
 		/*Clear IDLE interrupt flag*/
 		tmp = USART1->SR; //flag is cleared by reading these two registers
 		tmp = USART1->DR;
+		(void) tmp; //tell complier tmp is not used
 
 		/*Disable DMA stream*/
 		DMA2_Stream2->CR &=~DMA_SCR_EN;

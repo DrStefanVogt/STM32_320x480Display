@@ -21,8 +21,8 @@
 void spi_gpio_init(void);
 void spi3_config(void);
 void spi3_DMA_enable(void);
-void spi3_transmit(uint8_t *data,uint32_t size);
-void spi3_transmit16(uint16_t *data,uint32_t size);
+void spi3_transmit(const uint8_t *data,uint32_t size);
+void spi3_transmit16(const uint16_t *data,uint32_t size);
 void cs_enable(void);
 void cs_disable(void);
 void spi3_set8(void);

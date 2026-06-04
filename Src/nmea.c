@@ -7,7 +7,7 @@
 #include "nmea.h"
 #include <ctype.h>
 
-static const debug = 1;
+static const uint8_t debug = 1;
 
 typedef struct {
 	char GPS_POS[NMEA_SENTENCE_LENGTH];
@@ -60,7 +60,6 @@ void init_nmea_buffer(char* uart_data){
 	uint16_t uart_i = 0;
 	uint8_t gpgsv_i = 0;
 	while(uart_i < UART_DATA_BUFF_SIZE){
-		bool sent_start = 0; //no active sentence detected
 		uint8_t pos = 0;  //'cursor' position
 		/*SEE IF SENTENCE HAS STARTED*/
 		if(uart_data[uart_i] == '\0') break; //finish loop when end of uart_buffer is reached, TODO: check if NMEA may contain '\0'
@@ -72,7 +71,6 @@ void init_nmea_buffer(char* uart_data){
 				continue;
 			}
 			pos++; //move cursor
-			sent_start = 1; //start command given
 		}
 		else{
 			uart_i++;
@@ -85,7 +83,7 @@ void init_nmea_buffer(char* uart_data){
 		pos += 4; //skip 4 elements with cursor. cursor should be on first real data byte now
 
 		char* writeTo_ptr = NULL; //pointer to right storage position, initialized to NULL
-		volatile bool validated = validate_nmea_checksum(&uart_data[uart_i]);
+
 		switch(nmea_this){
 			case CMD4('N','G','L','L'):
 //				GNGLL = GNSS position
@@ -111,14 +109,14 @@ void init_nmea_buffer(char* uart_data){
 				printf("detected GNRMC \r\n");
 				writeTo_ptr  = n.GNRMC;
 				n.GNRMC_on = 1;
-				printf("nmea_this: %i\r\n", nmea_this);
+				printf("nmea_this: %li\r\n", nmea_this);
 				break;
 
 			 case CMD4('P','R','M','C'):
 				printf("detected GPRMC \r\n");
 				writeTo_ptr  = n.GPRMC;
 				n.GPRMC_on = 1;
-				printf("nmea_this: %i\r\n", nmea_this);
+				printf("nmea_this: %li\r\n", nmea_this);
 				break;
 
 			case CMD4('P','T','X','T'):
@@ -213,7 +211,7 @@ bool getAntennaStatus(void){
 	printf("%s",n.GPTXT);
 	for (uint8_t i=0;i<NMEA_STATEMENTS_PER_SENTENCE;i++){
 		if(output[i][0]=='A' && output[i][1]=='N' && output[i][2]=='T'&& output[i][9]=='=' && output[i][11]=='P') return 0;
-		if(output[i][0]=='A' && output[i][1]=='N' && output[i][2]=='T'&& output[i][9]=='=' && output[i][11]=='K ') return 1;
+		if(output[i][0]=='A' && output[i][1]=='N' && output[i][2]=='T'&& output[i][9]=='=' && output[i][11]=='K') return 1;
 	}
 	return 0;
 }
@@ -251,7 +249,7 @@ bool validate_nmea_checksum(const char *sentence)
     if(*sentence == '*') sentence++;
     else return 0;
 
-    if (isxdigit(sentence[0]) && isxdigit(sentence[1])) {
+    if (isxdigit((unsigned char)sentence[0]) && isxdigit((unsigned char)sentence[1])) {
     	checksum_received = read_from_hex(sentence);
         }
     else return 0;

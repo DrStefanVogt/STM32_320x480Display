@@ -75,7 +75,7 @@ void spi3_config(void){
 
 }
 
-void spi3_transmit(uint8_t *data,uint32_t size)
+void spi3_transmit(const uint8_t *data,uint32_t size)
 {
 	/*8 bit version for init only*/
 	uint32_t i=0;
@@ -104,7 +104,7 @@ void spi3_transmit(uint8_t *data,uint32_t size)
 }
 
 
-void spi3_transmit16(uint16_t *data,uint32_t size)
+void spi3_transmit16(const uint16_t *data,uint32_t size)
 	{
 		/*16 bit version*/
 		uint32_t i=0;

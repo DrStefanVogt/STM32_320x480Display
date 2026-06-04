@@ -105,7 +105,7 @@ void fullScreenColor(uint16_t color){
 			tft_dc_low();
 }
 
-void fillRectangle(uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uint8_t b){
+void fillRectangle(volatile uint16_t *buffer,int16_t x,int16_t y, uint8_t a, uint8_t b){
 	//fills a rectangular screen area with the contents of *buffer
 
 	setSingleColorStatus(0); //using buffer increment
@@ -178,8 +178,6 @@ void fillSquare_scaleup(uint16_t (*buffer)[8], uint16_t x, uint16_t y, uint16_t 
 	//fill a square of size 2a x 2a with the contents of *buffer,
 	// use each pixel in buffer to fill 4 pixel in windowBuffer
 	setSingleColorStatus(0); //single color mode =off, DMA increment buffer
-	const uint8_t scale = 2;
-	uint16_t size = a*a;
 	for (uint8_t i=0; i < a;i++){
 		for(uint8_t j=0;j<a;j++){
 				uint16_t dst = i*2*2*a + j*2;

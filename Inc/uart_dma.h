@@ -1,6 +1,7 @@
 #ifndef __UART_DMA_H__
 #define __UART_DMA_H__
 #include <stdint.h>
+#include <stdio.h>
 #include "stm32f4xx.h"
 
 #define UART_DATA_BUFF_SIZE		5000 //is that enough?

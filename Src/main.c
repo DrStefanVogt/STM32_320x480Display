@@ -13,8 +13,12 @@
 #include "uart.h"
 #include "nmea.h"
 
-static const bool debug = 1;
+static const bool debug = 0;
 static const bool showall = 1;
+
+static const uint16_t anchorCircle_centerX=160;
+static const uint16_t anchorCircle_centerY=250;
+static const uint8_t scale = 4; //in power of two 1=>2 2=>4 3=>8 4=>16
 
 extern uint8_t g_rx_cmplt;
 extern uint8_t g_uart_cmplt;
@@ -30,6 +34,12 @@ char msg_buff[UART_DATA_BUFF_SIZE] ={'\0'}; //this will be obsolete after nmea_b
 
 
 extern uint32_t _estack;
+
+enum stateMachine{
+	WAIT_FOR_GPS,
+	WAIT_FOR_ANCHOR_DROP,
+	RECORD_POSITION
+};
 
 void stack_fill(void)
 {
@@ -57,33 +67,42 @@ size_t stack_usage(void)
     return (uint8_t*)&_estack - (uint8_t*)p;
 }
 
+void drawAnchorCircle(uint8_t circle_m){
+	graphicsSettings(COLOR16_RED, COLOR16_BLACK, 3);
+	drawCircle(anchorCircle_centerX,anchorCircle_centerY,circle_m*100>>scale);
+	return;
+}
+
 volatile size_t usage; //variable for debugging stack issues
 
 int main(void){
 
+	//STM32 comunication initialize
 	A1_on();
-
-	stack_fill();
-	debugFillUartBuffer();
 	SCB->CPACR |= (0xF << 20);  // Enable CP10 + CP11 for float
-	usage  = stack_usage();
-	printf("stack_usage: %i",usage);
-	four_inch_init();
-	testScreen_16();
-	debugSineCosine();
-	systick_msec_delay(1000);
-	rectangle_empty(0,0,230,230,10,COLOR16_BLUE);
-	graphicsInit(COLOR16_GREEN, COLOR16_BLACK, 6);
-	digitLCDInit(25,40,40,50,19,5);
 	dma2_init();
 	uart1_rx_tx_init();
 	dma2_stream2_uart_rx_config();
 	uart_init();
-	systick_msec_delay(500);
-	uint16_t number = 0;
+
+	//stack usage monitoring, just for developement
+	stack_fill();
+	debugFillUartBuffer();
+	usage  = stack_usage();
+	if(debug) printf("stack_usage: %i",usage);
+
+	//display init
+	four_inch_init();
+	if(debug)testScreen_16();
+	debugSineCosine();
+	systick_msec_delay(1000);
 	fullScreenColor(COLOR16_WHITE);
+	graphicsSettings(COLOR16_GREEN, COLOR16_BLACK, 6);
 	digitLCDInit(25,40,40,50,19,5);
 	textInit(0,COLOR16_BLUE,COLOR16_WHITE);
+	drawAnchorCircle(25);
+
+	uint16_t tickCounter = 0;
 	setGPGSV(1);
 	uint8_t counter = 0;
 	while (getTime()== 0 && counter < 10){
@@ -94,20 +113,15 @@ int main(void){
 		counter++;
 	}//wait for GNRMSentence to arrive
 		dropAnchor((uint16_t)getTime(), getLattitude(),getLongitude());
-	//debugGrid();
-	uint16_t centerX=160;
-	uint16_t centerY=250;
-	uint8_t scale = 4; //in power of two 1=>2 2=>4 3=>8 4=>16
-	uint8_t circle_m = 20;
-	graphicsInit(COLOR16_RED, COLOR16_BLACK, 3);
-	drawCircle(centerX,centerY,circle_m*100>>scale);
+	
+
+	
 
 	while(1){
-		digitLCDUpdate(number);
-
+		digitLCDUpdate(tickCounter);
 		usage  = stack_usage();
-		number++;
-		if (number%2500 == 0) nextColor();
+		tickCounter++;
+		if (tickCounter%2500 == 0) nextColor();
 		if(g_uart_idle){  //wait for end of NMEA Sentence transmisson, complete loop must be shorter than 1000ms
 			g_uart_idle = 0;
 			init_nmea_buffer(uart_data_buffer);
@@ -122,12 +136,12 @@ int main(void){
 				 printf("antenna: %i\r\n",getAntennaStatus());
 				 printf("stack_usage: %i\r\n",usage);
 				 printf("$GNRMC,%s\r\n",getGNRMCSentence());
-				 printf("--->%i: %i,%i\r\n",(uint16_t)(getTime()),getLattitude(),getLongitude());
+				 printf("--->%i: %li,%li\r\n",(uint16_t)(getTime()),getLattitude(),getLongitude());
 				 printf("Delta latt/lon(min/100000): %i,%i\r\n", getDeltaLatt(),getDeltaLon());
 				 //for(uint8_t i=0;i<=NMEA_GPGSV_NUM;i++)printf("GPGSV %i: %s\r\n",i, getGSGSVSentence(i));
 				 printf("r (m): %f,lat(cm): %i, lon(cm): %i\r\n",getDeltaMeter(),getDeltaLattCm(),getDeltaLonCm());
 			 }
-			drawSquare(centerX-(getDeltaLattCm()>>scale),centerY-(getDeltaLonCm()>>scale),3);
+			drawSquare(anchorCircle_centerX-(getDeltaLattCm()>>scale),anchorCircle_centerY-(getDeltaLonCm()>>scale),3);
 
 		}
 

@@ -20,7 +20,7 @@
 #define DMA_CR_CHSEL4		(1U<<27)
 
 
-void spi_dma1_init(uint16_t *buffer){
+void spi_dma1_init(volatile uint16_t *buffer){
 	//hier sind noch alle inits für 1 u 2 drin
 
 	/*Enable clock access to DMA1*/
