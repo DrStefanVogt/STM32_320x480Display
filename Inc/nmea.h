@@ -28,7 +28,7 @@ extern uint8_t GPGLL;
 extern uint8_t GPGSV[NMEA_BURST_NO];
 extern uint8_t GPGSA[NMEA_BURST_NO];
 
-void init_nmea_buffer(char* uart_data);
+void fill_nmea_buffer(char* uart_data);
 void identNMEASentence(uint32_t nmea_this);
 const char* getPositionSentence(void);
 const char* getGSGSVSentence(uint8_t num);

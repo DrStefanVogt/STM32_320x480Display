@@ -303,6 +303,21 @@ void convertUint16ToChar(uint16_t input, char* buffer, uint8_t digits){
     }
 }
 
+void convertInt32ToChar(int32_t input, char* buffer, uint8_t digits){
+
+    for(int8_t i = digits;i>0;i--) {
+        buffer[i] = '0' + (input % 10);
+        input /= 10;
+    }
+}
+
+void drawInt32(int32_t input, uint16_t x, uint16_t y, uint8_t digits)
+	{
+	    char buffer[2*MAXDIGIT]={'0','0','0','0','0','0','0','0','0','0'};   
+	    convertInt32ToChar(input, buffer,digits);
+	    writeWord(buffer, x, y);
+	}
+
 void drawDigit_LCD(char num, uint16_t x, uint16_t y){
 	//draw single screen digit in digital clock style
 	 uint8_t statusByte=castCharToByte(num);

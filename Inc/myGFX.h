@@ -21,7 +21,9 @@ void writeLetter(char letter, uint16_t x, uint16_t y,uint16_t color,uint16_t bac
 void writeWord(const char *word, uint16_t x, uint16_t y);
 char castInt8ToChar(uint8_t input);
 void convertUint16ToChar(uint16_t input, char* buffer, uint8_t digits);
+void convertInt32ToChar(int32_t input, char* buffer, uint8_t digits);
 void drawUint16(uint16_t input, uint16_t x, uint16_t y, uint8_t digits);
+void drawInt32(int32_t input, uint16_t x, uint16_t y, uint8_t digits);
 void drawSquare(uint16_t x, uint16_t y, uint16_t a);
 void drawLine(uint16_t x, uint16_t y, uint16_t length, uint16_t phi);
 void drawCircle_part(uint16_t x, uint16_t y, uint16_t d ,int16_t phi_start ,int16_t phi_stop);

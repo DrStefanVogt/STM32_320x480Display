@@ -48,7 +48,7 @@ static const uint8_t cos_sq_table[] = {255, 254, 254, 254, 253, 253, 252, 251, 2
 static const uint8_t cos_table[] = {255, 254, 254, 254, 254, 254, 253, 253, 252, 251, 251, 250, 249, 248, 247, 246, 245, 243, 242, 241, 239, 238, 236, 234, 232, 231, 229, 227, 225, 223, 220, 218, 216, 213, 211, 208, 206, 203, 200, 198, 195, 192, 189, 186, 183, 180, 177, 173, 170, 167, 163, 160, 156, 153, 149, 146, 142, 138, 135, 131, 127, 123, 119, 115, 111, 107, 103, 99, 95, 91, 87, 83, 78, 74, 70, 65, 61, 57, 53, 48, 44, 39, 35, 31, 26, 22, 17, 13, 8, 4, };
 
 
-void init_nmea_buffer(char* uart_data){
+void fill_nmea_buffer(char* uart_data){
 	//this funciton sorts data of uart_data into the nmea_buffer struct.
 	//this is not protected against change of uart_data i.e. by DMA
 	//caller must make sure that uart_data stays constant for example by timing the sequence much shorter than 1s

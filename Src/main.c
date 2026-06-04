@@ -75,6 +75,8 @@ void drawAnchorCircle(uint8_t circle_m){
 
 volatile size_t usage; //variable for debugging stack issues
 
+enum stateMachine state = WAIT_FOR_GPS;
+
 int main(void){
 
 	//STM32 comunication initialize
@@ -101,30 +103,62 @@ int main(void){
 	digitLCDInit(25,40,40,50,19,5);
 	textInit(0,COLOR16_BLUE,COLOR16_WHITE);
 	drawAnchorCircle(25);
+	debugGrid();
 
 	uint16_t tickCounter = 0;
 	setGPGSV(1);
+
+	/* to be removed, keept as reference for the moment 20260604
 	uint8_t counter = 0;
 	while (getTime()== 0 && counter < 10){
-		init_nmea_buffer(uart_data_buffer);
+		fill_nmea_buffer(uart_data_buffer);
 		systick_msec_sleep(100);
 		 if (debug) printf("waiting for GNSS...\r\n");
 		systick_msec_sleep(100);
 		counter++;
 	}//wait for GNRMSentence to arrive
 		dropAnchor((uint16_t)getTime(), getLattitude(),getLongitude());
-	
+	*/
 
 	
-
+	int32_t lattitude_now;
+	int32_t longitude_now;
 	while(1){
 		digitLCDUpdate(tickCounter);
-		usage  = stack_usage();
 		tickCounter++;
+
+		switch (state)
+		{
+		case WAIT_FOR_GPS:
+			fill_nmea_buffer(uart_data_buffer);
+			writeWord("WAITING FOR GPS",300,450);
+			if(getLattitude()!=0){
+				lattitude_now = getLattitude();
+				longitude_now = getLongitude();
+				printf("lattitude in WAIT: %li\r\n", lattitude_now);
+				writeWord("LATTITUDE",300,440);
+				drawInt32(lattitude_now,230,440,9);
+				writeWord("LONGITUDE",300,430);
+				drawInt32(longitude_now,230,430,9);
+			}
+			if (getTime()!= 0){
+				 writeWord("GPS TIME: ",300,420);
+				 drawUint16((uint16_t)getTime(),230,420,5);
+			}
+			break;
+		
+		default:
+			break;
+		}
+		if (!debug) continue;
+
+		
+		usage  = stack_usage();
+	
 		if (tickCounter%2500 == 0) nextColor();
 		if(g_uart_idle){  //wait for end of NMEA Sentence transmisson, complete loop must be shorter than 1000ms
 			g_uart_idle = 0;
-			init_nmea_buffer(uart_data_buffer);
+			fill_nmea_buffer(uart_data_buffer);
 			if (debug && showall) printf("%s",uart_data_buffer);
 			writeWord(getPositionSentence(),300,450);
 			writeWord(getGSGSVSentence(0),300,440);
