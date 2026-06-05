@@ -51,6 +51,7 @@ int16_t getDeltaLonCm(void);
 int16_t getDeltaLattCm(void);
 
 bool getAntennaStatus(void);
+bool NMEAAlive(void);
 
 
 

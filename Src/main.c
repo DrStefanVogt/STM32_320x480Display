@@ -123,6 +123,7 @@ int main(void){
 	
 	int32_t lattitude_now;
 	int32_t longitude_now;
+	uint16_t tick_at_last_nmea;
 	while(1){
 		digitLCDUpdate(tickCounter);
 		tickCounter++;
@@ -130,8 +131,18 @@ int main(void){
 		switch (state)
 		{
 		case WAIT_FOR_GPS:
+			systick_msec_sleep(100);
 			fill_nmea_buffer(uart_data_buffer);
-			writeWord("WAITING FOR GPS",300,450);
+			if(g_uart_idle && NMEAAlive()) {
+				writeWord("GPS CONNECTED  ",300,450);
+				tick_at_last_nmea = tickCounter;
+				g_uart_idle = 0;
+			}
+			else {
+				if (tickCounter - tick_at_last_nmea > 10){
+				writeWord("WAITING FOR GPS",300,450);
+				}
+			}
 			if(getLattitude()!=0){
 				lattitude_now = getLattitude();
 				longitude_now = getLongitude();

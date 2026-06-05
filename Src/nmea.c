@@ -344,4 +344,8 @@ int32_t stringToU32e_FixedPoint(const char *input){
 	return sign * output;
 }
 
-
+bool NMEAAlive(void){
+	bool isConnected = 0;
+	if(*n.GPTXT != 0) isConnected = 1;
+	return isConnected;
+}
