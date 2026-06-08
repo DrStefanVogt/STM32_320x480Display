@@ -13,7 +13,7 @@
 #include "uart.h"
 #include "nmea.h"
 
-static const bool debug = 0;
+static const bool debug = 1;
 static const bool showall = 1;
 
 static const uint16_t anchorCircle_centerX=160;
@@ -31,6 +31,10 @@ char msg_buff[UART_DATA_BUFF_SIZE] ={'\0'}; //this will be obsolete after nmea_b
 //extern char nmea_buffer[NMEA_BURST_NO][NMEA_SENTENCE_LENGTH];
 
 #define STACK_SIZE 0x400
+
+#define WAIT_TEXT_X 300
+#define WAIT_TEXT_Y 460
+#define WAIT_TEXT_Y_LINEFEED -10
 
 
 extern uint32_t _estack;
@@ -120,6 +124,9 @@ int main(void){
 		dropAnchor((uint16_t)getTime(), getLattitude(),getLongitude());
 	*/
 
+
+
+
 	
 	int32_t lattitude_now;
 	int32_t longitude_now;
@@ -134,28 +141,31 @@ int main(void){
 			systick_msec_sleep(100);
 			fill_nmea_buffer(uart_data_buffer);
 			if(g_uart_idle && NMEAAlive()) {
-				writeWord("GPS CONNECTED  ",300,450);
+				writeWord("GPS CONNECTED  ",WAIT_TEXT_X,WAIT_TEXT_Y+WAIT_TEXT_Y_LINEFEED);
 				tick_at_last_nmea = tickCounter;
 				g_uart_idle = 0;
 			}
 			else {
 				if (tickCounter - tick_at_last_nmea > 10){
-				writeWord("WAITING FOR GPS",300,450);
+				writeWord("WAITING FOR GPS",WAIT_TEXT_X,WAIT_TEXT_Y+WAIT_TEXT_Y_LINEFEED);
 				}
 			}
 			if(getLattitude()!=0){
 				lattitude_now = getLattitude();
 				longitude_now = getLongitude();
 				printf("lattitude in WAIT: %li\r\n", lattitude_now);
-				writeWord("LATTITUDE",300,440);
+				writeWord("LATTITUDE",WAIT_TEXT_X,440);
 				drawInt32(lattitude_now,230,440,9);
-				writeWord("LONGITUDE",300,430);
+				writeWord("LONGITUDE",WAIT_TEXT_X,430);
 				drawInt32(longitude_now,230,430,9);
 			}
 			if (getTime()!= 0){
-				 writeWord("GPS TIME: ",300,420);
+				 writeWord("GPS TIME: ",WAIT_TEXT_X,420);
 				 drawUint16((uint16_t)getTime(),230,420,5);
 			}
+			printf("Number of Satelites:  %i\r\n",getSateliteInView());
+			writeWord("SATTELITES IN VIEW:",WAIT_TEXT_X, WAIT_TEXT_Y);
+			drawUint16((uint16_t)getSateliteInView(), WAIT_TEXT_X-(11*16),460,2);
 			break;
 		
 		default:

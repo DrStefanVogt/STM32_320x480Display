@@ -290,9 +290,10 @@ void drawLine(uint16_t x, uint16_t y, uint16_t length, uint16_t phi){
 
 void drawUint16(uint16_t input, uint16_t x, uint16_t y, uint8_t digits)
 	{
-	    char buffer[MAXDIGIT]={'0','0','0','0','0'};   // max "65535" + '\0'
+	    char buffer[MAXDIGIT]={'\0','\0','\0','\0','\0','\0','\0'};   // max "65535" + '\0'
 	    convertUint16ToChar(input, buffer,digits);
-	    writeWord(buffer, x, y);
+		buffer[digits] = '\0'; //trunkate Buffer to digit
+	    writeWord(buffer, x, y); 
 	}
 
 void convertUint16ToChar(uint16_t input, char* buffer, uint8_t digits){

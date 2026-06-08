@@ -278,6 +278,7 @@ uint8_t read_from_hex(const char *input){
 }
 
 void splitNMEASentence(const char *input, char output[NMEA_STATEMENTS_PER_SENTENCE][NMEA_CHARACTERS_PER_STATEMENT]){
+	//TODO: diese funktion produziert buffer overflows - fix it!
 	uint8_t k=0;						 //number of statements
 	uint8_t i=0; 						//input sentence counter
 	uint8_t j=0; 						//char in this statement
@@ -288,15 +289,15 @@ void splitNMEASentence(const char *input, char output[NMEA_STATEMENTS_PER_SENTEN
 
 	        if(input[i] == ','){ 		//go to next statement if ,
 	            output[k][j] ='\0';  	//finalize statement
-	            k++;
+	            if (k < NMEA_STATEMENTS_PER_SENTENCE-1) k++;
 	            j=0;					//switch to first char in next statement
 	        }
-
-	        if(input[i] != ','){ 		//next letter in current output
+			else { 		//next letter in current output
 	            j++;
 	        }
 	        i++;						//next letter in input
 	    }
+	 output[k][j] = '\0';
 	 k++;
 	 for (;k<NMEA_STATEMENTS_PER_SENTENCE;k++) output[k][0]='\0'; //set all remaining output statements to \0
 	}
@@ -346,6 +347,12 @@ int32_t stringToU32e_FixedPoint(const char *input){
 
 bool NMEAAlive(void){
 	bool isConnected = 0;
-	if(*n.GPTXT != 0) isConnected = 1;
+	if(*n.GPTXT != 0) isConnected = 1; //TODO: look for better marker
 	return isConnected;
+}
+
+uint8_t getSateliteInView(void){
+	char output[NMEA_STATEMENTS_PER_SENTENCE][NMEA_CHARACTERS_PER_STATEMENT];
+	splitNMEASentence(n.GPGSV[0],output);
+	return (uint8_t)*n.GPGSV[0]-48; //"-48" is the ASCII offset of 0
 }
