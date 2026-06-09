@@ -346,13 +346,14 @@ int32_t stringToU32e_FixedPoint(const char *input){
 }
 
 bool NMEAAlive(void){
-	bool isConnected = 0;
+	bool isConnected = 1;
 	if(*n.GPTXT != 0) isConnected = 1; //TODO: look for better marker
 	return isConnected;
 }
 
-uint8_t getSateliteInView(void){
+uint16_t getSateliteInView(void){
 	char output[NMEA_STATEMENTS_PER_SENTENCE][NMEA_CHARACTERS_PER_STATEMENT];
 	splitNMEASentence(n.GPGSV[0],output);
-	return (uint8_t)*n.GPGSV[0]-48; //"-48" is the ASCII offset of 0
+	uint8_t satelites = (uint8_t)*output[0]-'0'; //TODO: geht so nicht mit >9 oder <=0;
+	return satelites; //"-48" is the ASCII offset of 0
 }

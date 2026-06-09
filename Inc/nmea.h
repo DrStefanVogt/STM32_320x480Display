@@ -52,7 +52,7 @@ int16_t getDeltaLattCm(void);
 
 bool getAntennaStatus(void);
 bool NMEAAlive(void);
-uint8_t getSateliteInView(void);
+uint16_t getSateliteInView(void);
 
 
 void setGPGSV(bool on);

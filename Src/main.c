@@ -13,7 +13,7 @@
 #include "uart.h"
 #include "nmea.h"
 
-static const bool debug = 1;
+static const bool debug = 0;
 static const bool showall = 1;
 
 static const uint16_t anchorCircle_centerX=160;
@@ -165,7 +165,8 @@ int main(void){
 			}
 			printf("Number of Satelites:  %i\r\n",getSateliteInView());
 			writeWord("SATTELITES IN VIEW:",WAIT_TEXT_X, WAIT_TEXT_Y);
-			drawUint16((uint16_t)getSateliteInView(), WAIT_TEXT_X-(11*16),460,2);
+			uint16_t satInView = getSateliteInView();
+			drawUint16(satInView, WAIT_TEXT_X-(8*18),WAIT_TEXT_Y,(uint8_t)2);
 			break;
 		
 		default:
