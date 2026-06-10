@@ -58,5 +58,9 @@ uint16_t getSateliteInView(void);
 void setGPGSV(bool on);
 float stringToFloat(const char *input);
 int32_t stringToU32e_FixedPoint(const char *input);
+uint8_t convertCharArrToUint8(char *input);
+
+//test functions
+bool testConvertCharArrToUint8(void);
 
 #endif //NMEA_H

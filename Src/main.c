@@ -134,7 +134,6 @@ int main(void){
 	while(1){
 		digitLCDUpdate(tickCounter);
 		tickCounter++;
-
 		switch (state)
 		{
 		case WAIT_FOR_GPS:
@@ -158,6 +157,10 @@ int main(void){
 				drawInt32(lattitude_now,230,440,9);
 				writeWord("LONGITUDE",WAIT_TEXT_X,430);
 				drawInt32(longitude_now,230,430,9);
+			}
+			else {
+				writeWord("NO POSTITION DATA         ",WAIT_TEXT_X,440);
+				writeWord("                          ",WAIT_TEXT_X,430);
 			}
 			if (getTime()!= 0){
 				 writeWord("GPS TIME: ",WAIT_TEXT_X,420);

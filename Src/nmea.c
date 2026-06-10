@@ -106,17 +106,15 @@ void fill_nmea_buffer(char* uart_data){
 				writeTo_ptr = NULL; //Not yet used
 				break;
 			case CMD4('N','R','M','C'):
-				printf("detected GNRMC \r\n");
+				if(debug) printf("detected GNRMC \r\n");
 				writeTo_ptr  = n.GNRMC;
 				n.GNRMC_on = 1;
-				printf("nmea_this: %li\r\n", nmea_this);
 				break;
 
 			 case CMD4('P','R','M','C'):
-				printf("detected GPRMC \r\n");
+				if(debug) printf("detected GPRMC \r\n");
 				writeTo_ptr  = n.GPRMC;
 				n.GPRMC_on = 1;
-				printf("nmea_this: %li\r\n", nmea_this);
 				break;
 
 			case CMD4('P','T','X','T'):
@@ -174,7 +172,7 @@ const char* getGSGSVSentence(uint8_t num){
 
 int32_t getLattitude(void){
 	int32_t lattitude = stringToU32e_FixedPoint(n.GxRMC_split[2]);
-	printf("get_latt: here>%s\r\n",n.GxRMC_split[2]);
+	if(debug) printf("get_latt: here>%s\r\n",n.GxRMC_split[2]);
 	return lattitude;
 }
 
@@ -208,7 +206,7 @@ int16_t getDeltaLonCm(void){
 bool getAntennaStatus(void){
 	char output[NMEA_STATEMENTS_PER_SENTENCE][NMEA_CHARACTERS_PER_STATEMENT];
 	splitNMEASentence(n.GPTXT,output);
-	printf("%s",n.GPTXT);
+	if (debug) printf("%s",n.GPTXT);
 	for (uint8_t i=0;i<NMEA_STATEMENTS_PER_SENTENCE;i++){
 		if(output[i][0]=='A' && output[i][1]=='N' && output[i][2]=='T'&& output[i][9]=='=' && output[i][11]=='P') return 0;
 		if(output[i][0]=='A' && output[i][1]=='N' && output[i][2]=='T'&& output[i][9]=='=' && output[i][11]=='K') return 1;
@@ -221,7 +219,7 @@ float getDeltaMeter(void){
 	int16_t lat = getDeltaLatt();
 	int16_t lon = getDeltaLon();
 	deltaMeter = sqrtf((lat*lat*coordToMeters_sq)+(lon*lon*coordToMeters_sq*cos_sq_table[latt_anchor]/255));
-	printf("%i\r\n",latt_anchor);
+	if (debug) printf("%i\r\n",latt_anchor);
 	return deltaMeter;
 }
 
@@ -346,14 +344,53 @@ int32_t stringToU32e_FixedPoint(const char *input){
 }
 
 bool NMEAAlive(void){
-	bool isConnected = 1;
-	if(*n.GPTXT != 0) isConnected = 1; //TODO: look for better marker
+	bool isConnected = 0;
+	if(n.GNRMC_on || n.GPRMC_on) isConnected = 1;
 	return isConnected;
 }
 
 uint16_t getSateliteInView(void){
 	char output[NMEA_STATEMENTS_PER_SENTENCE][NMEA_CHARACTERS_PER_STATEMENT];
 	splitNMEASentence(n.GPGSV[0],output);
-	uint8_t satelites = (uint8_t)*output[0]-'0'; //TODO: geht so nicht mit >9 oder <=0;
-	return satelites; //"-48" is the ASCII offset of 0
+	uint8_t satelites =convertCharArrToUint8(output[0]); //TODO: does not work with >9 oder <=0;
+	return satelites; 
 }
+
+uint8_t convertCharArrToUint8(char *input){
+	uint16_t result = 0;
+	if (input == NULL) return 0;
+	while (*input != '\0')
+	{
+	 if ((*input < '0') || (*input > '9'))
+        {
+            return 0; // ungültiges Zeichen
+        }
+        result = result * 10 + (*input - '0');
+        if (result > 255)
+        {
+            return 255; // Überlauf begrenzen
+        }
+        input++;
+    }
+	return (uint8_t)result;
+}
+//****************************************************************************************************
+//							test functions
+//****************************************************************************************************
+
+/*
+bool testConvertCharArrToUint8(void){
+    bool testResult = true;
+	testResult &= !(convertCharArrToUint8("0") == 255);
+    testResult &= (convertCharArrToUint8("0") == 0);
+    testResult &= (convertCharArrToUint8("5") == 5);
+    testResult &= (convertCharArrToUint8("12") == 12);
+    testResult &= (convertCharArrToUint8("255") == 255);
+	testResult &= (convertCharArrToUint8("276") == 255);
+	testResult &= (convertCharArrToUint8("2?6") == 0);
+	if(testResult) printf("TEST:---CharToUint8 :PASS\r\n");
+	else printf("TEST:---CharToUint8 :FAIL\r\n");
+	return testResult;
+
+}
+*/
