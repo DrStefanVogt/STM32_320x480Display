@@ -155,10 +155,12 @@ int main(void){
 				lattitude_now = getLattitude();
 				longitude_now = getLongitude();
 				printf("lattitude in WAIT: %li\r\n", lattitude_now);
+				textSettingsPush(COLOR16_DARKGREEN,COLOR16_WHITE);
 				writeWord("LATTITUDE",WAIT_TEXT_X,440);
 				drawInt32(lattitude_now,230,440,9);
 				writeWord("LONGITUDE",WAIT_TEXT_X,430);
 				drawInt32(longitude_now,230,430,9);
+				textSettingsPop();
 			}
 			else {
 				writeWord("NO POSTITION DATA         ",WAIT_TEXT_X,440);

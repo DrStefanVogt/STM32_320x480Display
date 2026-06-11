@@ -23,9 +23,9 @@ void color(uint16_t cin , uint8_t cout[2]) {
     cout[1] = cin & 0x00FF;
 }
 int main(void){
-    uint8_t r = 135;
-    uint8_t g = 206;
-    uint8_t b = 250;
+    uint8_t r = 88;
+    uint8_t g = 191;
+    uint8_t b = 116;
     uint16_t colorInput = color565(r,g,b);
     uint8_t Split[2];
     color(colorInput,Split);
