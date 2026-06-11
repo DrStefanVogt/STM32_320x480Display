@@ -10,9 +10,13 @@
 #define MYGFX_H_
 
 
-void textInit(bool doubleSize, uint16_t color, uint16_t backgroundColor);
+void textSettings(bool doubleSize, uint16_t color, uint16_t backgroundColor);
+void textSettingsPush(uint16_t color, uint16_t backgroundColor);
+void textSettingsPop();
 void digitLCDInit(uint16_t x, uint16_t y, uint8_t xOffset, uint8_t height,uint8_t width, uint8_t digitNo);
 void graphicsSettings( uint16_t color, uint16_t backgroundColor, uint8_t thickness);
+void graphicsSettingsPush(uint16_t color, uint16_t backgroundColor, uint8_t thickness);
+void graphicsSettingsPop();
 void digitLCDUpdate(uint16_t input);
 
 void rectangle(uint16_t line, uint16_t row, uint16_t width, uint16_t height, uint16_t color);

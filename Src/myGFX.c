@@ -17,8 +17,11 @@ uint16_t* singleBuffer = &singleColor;
 
 typedef struct {
 	uint16_t color;
+	uint16_t colorTmp;
 	uint16_t bgColor;
+	uint16_t bgColorTmp;
 	uint8_t thickness;
+	uint8_t thicknessTmp;
 } graphicsOptions;
 
 typedef struct {
@@ -40,7 +43,9 @@ typedef struct {
 typedef struct {
 	bool doubleSized;
 	uint16_t color;
+	uint16_t colorTmp;
 	uint16_t bgColor;
+	uint16_t bgColorTmp;
 } textOptions;
 
 typedef struct {
@@ -91,8 +96,15 @@ static const Glyph font[] = {
 };
 
 static const uint8_t sine_table[] = {0,4,8,13,17,22,26,31,35,39,44,48,53,57,61,66,70,74,78,83,87,91,95,99,103,107,111,115,119,123,127,131,135,138,142,146,149,153,156,160,163,167,170,173,177,180,183,186,189,192,195,198,200,203,206,208,211,213,216,218,220,223,225,227,229,231,232,234,236,238,239,241,242,243,245,246,247,248,249,250,251,251,252,253,253,254,254,254,254,254,255,};
-static textOptions TEXT_OPT ={1,COLOR16_BLACK,COLOR16_WHITE};
-static graphicsOptions GRAPH_OPT ={COLOR16_BLACK,COLOR16_WHITE};
+static textOptions TEXT_OPT ={
+	.color = COLOR16_BLACK,
+	.bgColor = COLOR16_WHITE,
+	.doubleSized =1};
+
+static graphicsOptions GRAPH_OPT ={
+	.color = COLOR16_BLACK,
+	.bgColor = COLOR16_WHITE,
+	.thickness = 1};
 
 static LCDOptions LCD_OPT = {
     .color = COLOR16_BLACK,
@@ -111,10 +123,22 @@ static LCDOptions LCD_OPT = {
 static uint16_t colorSpectrum[COLOR_SPECTRUM_NO] = {COLOR16_BLACK, COLOR16_BLUE, COLOR16_RED, COLOR16_LIGHTBLUE,COLOR16_GREEN};
 
 
-void textInit(bool doubleSize, uint16_t color, uint16_t backgroundColor){
+void textSettings(bool doubleSize, uint16_t color, uint16_t backgroundColor){
 	TEXT_OPT.doubleSized = doubleSize;
 	TEXT_OPT.color = color;
 	TEXT_OPT.bgColor = backgroundColor;
+}
+
+void textSettingsPush(uint16_t color, uint16_t backgroundColor){
+	TEXT_OPT.colorTmp = TEXT_OPT.color;
+	TEXT_OPT.bgColorTmp = TEXT_OPT.bgColor;
+	TEXT_OPT.color = color;
+	TEXT_OPT.bgColor = backgroundColor;
+}
+
+void textSettingsPop(){
+	TEXT_OPT.color = TEXT_OPT.colorTmp;
+	TEXT_OPT.bgColor = TEXT_OPT.bgColorTmp;
 }
 
 void graphicsSettings( uint16_t color, uint16_t backgroundColor, uint8_t thickness){
@@ -123,6 +147,20 @@ void graphicsSettings( uint16_t color, uint16_t backgroundColor, uint8_t thickne
 	GRAPH_OPT.bgColor = backgroundColor;
 	GRAPH_OPT.thickness = thickness;
 
+}
+
+void graphicsSettingsPush(uint16_t color, uint16_t backgroundColor, uint8_t thickness){
+	GRAPH_OPT.colorTmp = GRAPH_OPT.color;
+	GRAPH_OPT.bgColorTmp = GRAPH_OPT.bgColor;
+	GRAPH_OPT.thicknessTmp = GRAPH_OPT.thickness;
+	GRAPH_OPT.color = color;
+	GRAPH_OPT.bgColor = backgroundColor;
+	GRAPH_OPT.thickness = thickness;
+}
+void graphicsSettingsPop(){
+	GRAPH_OPT.color = GRAPH_OPT.colorTmp;
+	GRAPH_OPT.bgColor = GRAPH_OPT.bgColorTmp;
+	GRAPH_OPT.thickness = GRAPH_OPT.thicknessTmp;
 }
 
 void digitLCDInit(uint16_t x, uint16_t y, uint8_t xOffset, uint8_t height,uint8_t width, uint8_t digitNo){
@@ -456,7 +494,7 @@ graphicsSettings(COLOR16_BLACK,COLOR16_WHITE,5);
 drawLine(x+178,y+220,46,0);
 drawLine(x+155,y+220,62,270);
 drawCircle_part(155,425,30,-90,90);
-textInit(1, COLOR16_BLACK, COLOR16_WHITE);
+textSettings(1, COLOR16_BLACK, COLOR16_WHITE);
 writeWord("STEFANS ANKERALARM",x+300,y+10);
 	}
 

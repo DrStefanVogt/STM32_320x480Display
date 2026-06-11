@@ -105,7 +105,7 @@ int main(void){
 	fullScreenColor(COLOR16_WHITE);
 	graphicsSettings(COLOR16_GREEN, COLOR16_BLACK, 6);
 	digitLCDInit(25,40,40,50,19,5);
-	textInit(0,COLOR16_BLUE,COLOR16_WHITE);
+	textSettings(0,COLOR16_BLUE,COLOR16_WHITE);
 	drawAnchorCircle(25);
 	debugGrid();
 
@@ -146,7 +146,9 @@ int main(void){
 			}
 			else {
 				if (tickCounter - tick_at_last_nmea > 10){
+				textSettingsPush(COLOR16_RED,COLOR16_WHITE);
 				writeWord("WAITING FOR GPS",WAIT_TEXT_X,WAIT_TEXT_Y+WAIT_TEXT_Y_LINEFEED);
+				textSettingsPop();
 				}
 			}
 			if(getLattitude()!=0){

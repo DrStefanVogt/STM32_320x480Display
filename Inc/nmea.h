@@ -61,6 +61,6 @@ int32_t stringToU32e_FixedPoint(const char *input);
 uint8_t convertCharArrToUint8(char *input);
 
 //test functions
-bool testConvertCharArrToUint8(void);
+//bool testConvertCharArrToUint8(void);
 
 #endif //NMEA_H
